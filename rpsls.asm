@@ -109,6 +109,7 @@ ZEROB	equ	0x0000
 
 ; Generic string
 	sto	db	"%s",0
+	nlst	db	"\n%s\n",0
 
 ; Splash screen
 	splashs	db	"RPSLS v1.0 a Rock, Paper, Scissors, Lizard, Spock game by Dan Rhea, 2024",10
@@ -124,10 +125,15 @@ ZEROB	equ	0x0000
 
 	stest	db	"String: Player selected action verb:'%s'.",10,0
 
-CGUESS	equ	4
-PGUESS	equ	1
+	CGUESS	equ	4
+	PGUESS	equ	1
+
+	NL	db	0xa	; newline
+	inlen	equ	32	; Max buffer length
 
 section	.bss
+
+	input	resb	inlen+1	; add room for string and a null terminator
 
 section	.text
 
@@ -145,9 +151,9 @@ main:
 
 ; Show splash
 splash:
-	mov	rax, NOFLOAT
-	mov	rdi, sto
-	mov	rsi, splashs
+	mov	rax, NOFLOAT	; non-float output
+	mov	rdi, sto	; string format (%s)
+	mov	rsi, splashs	; text to output
 	call	printf
 
 ; Show help (basic commands)
@@ -166,10 +172,21 @@ prompt:
  	mov	rsi, prompts	; Player prompt
 	mov	rdx, plen	; Prompt length
 	syscall
-	jmp	end		; For now
 
 ; Get input from player
-; Convert to numeric offset (0-4, 5-9) (proxies and commands)
+	mov	rdi, input	; Input buffer
+	mov	rsi, inlen	; Buffer length
+	call	reads
+
+; for now, echo input and exit
+	mov	rax, NOFLOAT
+	mov	rdi, nlst
+	mov	rsi, input
+	call	printf
+
+	jmp	end		; For now
+
+; Convert input to numeric offset (0-4, 5-9) (proxies and commands)
 ; Get random pick for computer
 ; Process commands if one is selected
 ;	5: Show help again (go to help)
@@ -212,4 +229,49 @@ end:
 	mov	rax, XITCMD	; exit
 	mov	rdi, NORMAL	; normal exit
 	syscall
+
+; ---------------------------------------------------------------------
+; reads ("safe" string reader), from
+; Beginning x64 Assembly Programming by Jo Van Hoey (Pages 163-165)  
+; ---------------------------------------------------------------------
+reads:
+section	.data
+section	.bss
+	.inputc	resb	1
+section	.text
+	push	rbp
+	mov	rbp, rsp
+	push	r12		; save registers for argument use
+	push	r13
+	push	r14
+	mov	r12, rdi	; Address of input buffer
+	mov	r13, rsi	; Max length to r13
+	mov	r14, r14	; Character counter
+.readc:
+	mov	rax, 0		; Read opcode
+	mov	rdi, 1		; Set stdin
+	lea	rsi, [.inputc]	; Input address
+	mov	rdx, 1		; characters to read
+	syscall
+	mov	al, [.inputc]	; Input...
+	cmp	al, byte[NL]	; a newline?
+	je	.done		; end of input
+	cmp	al, 97		; less than 'a'?
+	jl	.readc		; Yes, ignore it
+	cmp	al, 122		; Greater than 'z'?
+	jg	.readc		; Yes, ignore as well
+	inc	r14		; Increment 'valid' input count
+	cmp	r14, r13	; max input?
+	ja	.readc		; Ignore stuff that would overflow the buffer
+	mov	byte [r12], al	; Save safe byte to buffer
+	inc	r12		; point to next byte in buffer
+	jmp	.readc		; get next character
+.done:
+	inc	r12		; bump buffer pointer
+	mov	byte [r12], 0	; zero terminate the buffer
+	pop	r14		; restore registers
+	pop	r13
+	pop	r12
+leave
+ret
 
