@@ -181,6 +181,7 @@ prompt:
 ; for now, echo input and exit
 	mov	rax, NOFLOAT
 	mov	rdi, nlst
+;	lea	rsi, [inbuf]	; Didn't help
 	mov	rsi, inbuf
 	call	printf
 

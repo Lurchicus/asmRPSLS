@@ -1,6 +1,6 @@
 # asmRPSLS
 
-Rock paper, scissors, lizard, spock game in NASM for Linux
+Rock, paper, scissors, lizard, spock game in NASM x64 for Linux
 
 Work in progress!
 
