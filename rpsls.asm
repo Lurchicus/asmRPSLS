@@ -133,7 +133,7 @@ ZEROB	equ	0x0000
 
 section	.bss
 
-	input	resb	inlen+1	; add room for string and a null terminator
+	inbuf	resb	inlen+1	; add room for string and a null terminator
 
 section	.text
 
@@ -174,14 +174,14 @@ prompt:
 	syscall
 
 ; Get input from player
-	mov	rdi, input	; Input buffer
+	mov	rdi, inbuf	; Input buffer
 	mov	rsi, inlen	; Buffer length
 	call	reads
 
 ; for now, echo input and exit
 	mov	rax, NOFLOAT
 	mov	rdi, nlst
-	mov	rsi, input
+	mov	rsi, inbuf
 	call	printf
 
 	jmp	end		; For now
@@ -230,15 +230,22 @@ end:
 	mov	rdi, NORMAL	; normal exit
 	syscall
 
-; ---------------------------------------------------------------------
-; reads ("safe" string reader), from
-; Beginning x64 Assembly Programming by Jo Van Hoey (Pages 163-165)  
-; ---------------------------------------------------------------------
+; *********************************************************************
+; * reads ("safe" string reader), from                                *
+; * Beginning x64 Assembly Programming by Jo Van Hoey (Pages 163-165) * 
+; * I have redone the comments to insure I understand what the        *
+; * procedure does and how it works.                                  *
+; *********************************************************************
 reads:
+
 section	.data
+
 section	.bss
-	.inputc	resb	1
+
+	.inputc	resb	1	; Single character
+
 section	.text
+
 	push	rbp
 	mov	rbp, rsp
 	push	r12		; save registers for argument use

@@ -216,7 +216,7 @@
    133                                  
    134                                  section	.bss
    135                                  
-   136 00000000 <res 21h>               	input	resb	inlen+1	; add room for string and a null terminator
+   136 00000000 <res 21h>               	inbuf	resb	inlen+1	; add room for string and a null terminator
    137                                  
    138                                  section	.text
    139                                  
@@ -262,7 +262,7 @@
    174 00000059 0F05                    	syscall
    175                                  
    176                                  ; Get input from player
-   177 0000005B 48BF-                   	mov	rdi, input	; Input buffer
+   177 0000005B 48BF-                   	mov	rdi, inbuf	; Input buffer
    177 0000005D [0000000000000000] 
    178 00000065 BE20000000              	mov	rsi, inlen	; Buffer length
    179 0000006A E86C000000              	call	reads
@@ -271,7 +271,7 @@
    182 0000006F B800000000              	mov	rax, NOFLOAT
    183 00000074 48BF-                   	mov	rdi, nlst
    183 00000076 [1603000000000000] 
-   184 0000007E 48BE-                   	mov	rsi, input
+   184 0000007E 48BE-                   	mov	rsi, inbuf
    184 00000080 [0000000000000000] 
    185 00000088 E8(00000000)            	call	printf
    186                                  
@@ -322,48 +322,55 @@
    230 000000D4 BF00000000              	mov	rdi, NORMAL	; normal exit
    231 000000D9 0F05                    	syscall
    232                                  
-   233                                  ; ---------------------------------------------------------------------
-   234                                  ; reads ("safe" string reader), from
-   235                                  ; Beginning x64 Assembly Programming by Jo Van Hoey (Pages 163-165)  
-   236                                  ; ---------------------------------------------------------------------
-   237                                  reads:
-   238                                  section	.data
-   239                                  section	.bss
-   240 00000021 ??                      	.inputc	resb	1
-   241                                  section	.text
-   242 000000DB 55                      	push	rbp
-   243 000000DC 4889E5                  	mov	rbp, rsp
-   244 000000DF 4154                    	push	r12		; save registers for argument use
-   245 000000E1 4155                    	push	r13
-   246 000000E3 4156                    	push	r14
-   247 000000E5 4989FC                  	mov	r12, rdi	; Address of input buffer
-   248 000000E8 4989F5                  	mov	r13, rsi	; Max length to r13
-   249 000000EB 4D89F6                  	mov	r14, r14	; Character counter
-   250                                  .readc:
-   251 000000EE B800000000              	mov	rax, 0		; Read opcode
-   252 000000F3 BF01000000              	mov	rdi, 1		; Set stdin
-   253 000000F8 488D3425[21000000]      	lea	rsi, [.inputc]	; Input address
-   254 00000100 BA01000000              	mov	rdx, 1		; characters to read
-   255 00000105 0F05                    	syscall
-   256 00000107 8A0425[21000000]        	mov	al, [.inputc]	; Input...
-   257 0000010E 3A0425[66040000]        	cmp	al, byte[NL]	; a newline?
-   258 00000115 7419                    	je	.done		; end of input
-   259 00000117 3C61                    	cmp	al, 97		; less than 'a'?
-   260 00000119 7CD3                    	jl	.readc		; Yes, ignore it
-   261 0000011B 3C7A                    	cmp	al, 122		; Greater than 'z'?
-   262 0000011D 7FCF                    	jg	.readc		; Yes, ignore as well
-   263 0000011F 49FFC6                  	inc	r14		; Increment 'valid' input count
-   264 00000122 4D39EE                  	cmp	r14, r13	; max input?
-   265 00000125 77C7                    	ja	.readc		; Ignore stuff that would overflow the buffer
-   266 00000127 41880424                	mov	byte [r12], al	; Save safe byte to buffer
-   267 0000012B 49FFC4                  	inc	r12		; point to next byte in buffer
-   268 0000012E EBBE                    	jmp	.readc		; get next character
-   269                                  .done:
-   270 00000130 49FFC4                  	inc	r12		; bump buffer pointer
-   271 00000133 41C6042400              	mov	byte [r12], 0	; zero terminate the buffer
-   272 00000138 415E                    	pop	r14		; restore registers
-   273 0000013A 415D                    	pop	r13
-   274 0000013C 415C                    	pop	r12
-   275 0000013E C9                      leave
-   276 0000013F C3                      ret
-   277                                  
+   233                                  ; *********************************************************************
+   234                                  ; * reads ("safe" string reader), from                                *
+   235                                  ; * Beginning x64 Assembly Programming by Jo Van Hoey (Pages 163-165) * 
+   236                                  ; * I have redone the comments to insure I understand what the        *
+   237                                  ; * procedure does and how it works.                                  *
+   238                                  ; *********************************************************************
+   239                                  reads:
+   240                                  
+   241                                  section	.data
+   242                                  
+   243                                  section	.bss
+   244                                  
+   245 00000021 ??                      	.inputc	resb	1	; Single character
+   246                                  
+   247                                  section	.text
+   248                                  
+   249 000000DB 55                      	push	rbp
+   250 000000DC 4889E5                  	mov	rbp, rsp
+   251 000000DF 4154                    	push	r12		; save registers for argument use
+   252 000000E1 4155                    	push	r13
+   253 000000E3 4156                    	push	r14
+   254 000000E5 4989FC                  	mov	r12, rdi	; Address of input buffer
+   255 000000E8 4989F5                  	mov	r13, rsi	; Max length to r13
+   256 000000EB 4D89F6                  	mov	r14, r14	; Character counter
+   257                                  .readc:
+   258 000000EE B800000000              	mov	rax, 0		; Read opcode
+   259 000000F3 BF01000000              	mov	rdi, 1		; Set stdin
+   260 000000F8 488D3425[21000000]      	lea	rsi, [.inputc]	; Input address
+   261 00000100 BA01000000              	mov	rdx, 1		; characters to read
+   262 00000105 0F05                    	syscall
+   263 00000107 8A0425[21000000]        	mov	al, [.inputc]	; Input...
+   264 0000010E 3A0425[66040000]        	cmp	al, byte[NL]	; a newline?
+   265 00000115 7419                    	je	.done		; end of input
+   266 00000117 3C61                    	cmp	al, 97		; less than 'a'?
+   267 00000119 7CD3                    	jl	.readc		; Yes, ignore it
+   268 0000011B 3C7A                    	cmp	al, 122		; Greater than 'z'?
+   269 0000011D 7FCF                    	jg	.readc		; Yes, ignore as well
+   270 0000011F 49FFC6                  	inc	r14		; Increment 'valid' input count
+   271 00000122 4D39EE                  	cmp	r14, r13	; max input?
+   272 00000125 77C7                    	ja	.readc		; Ignore stuff that would overflow the buffer
+   273 00000127 41880424                	mov	byte [r12], al	; Save safe byte to buffer
+   274 0000012B 49FFC4                  	inc	r12		; point to next byte in buffer
+   275 0000012E EBBE                    	jmp	.readc		; get next character
+   276                                  .done:
+   277 00000130 49FFC4                  	inc	r12		; bump buffer pointer
+   278 00000133 41C6042400              	mov	byte [r12], 0	; zero terminate the buffer
+   279 00000138 415E                    	pop	r14		; restore registers
+   280 0000013A 415D                    	pop	r13
+   281 0000013C 415C                    	pop	r12
+   282 0000013E C9                      leave
+   283 0000013F C3                      ret
+   284                                  
