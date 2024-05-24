@@ -109,7 +109,7 @@ ZEROB	equ	0x0000
 
 ; Generic string
 	sto	db	"%s",0
-	nlst	db	"\n%s\n",0
+	nlst	db	"-%s-",0
 
 ; Splash screen
 	splashs	db	"RPSLS v1.0 a Rock, Paper, Scissors, Lizard, Spock game by Dan Rhea, 2024",10
@@ -122,6 +122,9 @@ ZEROB	equ	0x0000
 ; Prompt
 	prompts	db	"rpsls: ",0
 	plen	equ	$-prompts
+
+; Goodbye
+	bye	db	"Done! Thanks for playing.",10,0
 
 	stest	db	"String: Player selected action verb:'%s'.",10,0
 
@@ -224,6 +227,11 @@ quit:
 	jmp	prompt		; reprompt
 
 end:
+	mov	rax, NOFLOAT
+	mov	rdi, sto
+	mov	rsi, bye
+	call	printf
+
 	mov	rsp, rbp	; epilogue
 	pop	rbp
 
@@ -254,7 +262,7 @@ section	.text
 	push	r14
 	mov	r12, rdi	; Address of input buffer
 	mov	r13, rsi	; Max length to r13
-	mov	r14, r14	; Character counter
+	mov	r14, 0		; Character counter
 .readc:
 	mov	rax, 0		; Read opcode
 	mov	rdi, 1		; Set stdin
