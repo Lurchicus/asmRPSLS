@@ -11,4 +11,6 @@ following the rules created by Sam Kass and Karen Bryla.
 - 03/17/2024 DWR Corrected details text (doubled by)
 - 03/24/2024 DWR Added a safe text reader procedure
 - 03/25/2024 DWR Having issues echoing read text so I added a few tweaks. Still having issues
-
+- 05/28/2024 DWR Fixed the issue in the subroutine reads. On line 265, for some reason the r14 register
+was being cleared with a "mov r14, r14". I replaced this with "mov r14, 0" which properly initializes r14 
+with a zero count.
