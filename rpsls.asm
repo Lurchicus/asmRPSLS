@@ -262,7 +262,7 @@ section	.text
 	push	r14
 	mov	r12, rdi	; Address of input buffer
 	mov	r13, rsi	; Max length to r13
-	mov	r14, 0		; Character counter
+	mov	r14, 0		; Character counter (this was mov r14, r14 which didn't work.)
 .readc:
 	mov	rax, 0		; Read opcode
 	mov	rdi, 1		; Set stdin

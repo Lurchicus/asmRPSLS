@@ -358,7 +358,7 @@
    262 00000101 4156                    	push	r14
    263 00000103 4989FC                  	mov	r12, rdi	; Address of input buffer
    264 00000106 4989F5                  	mov	r13, rsi	; Max length to r13
-   265 00000109 41BE00000000            	mov	r14, 0		; Character counter
+   265 00000109 41BE00000000            	mov	r14, 0		; Character counter (this was mov r14, r14 which didn't work.)
    266                                  .readc:
    267 0000010F B800000000              	mov	rax, 0		; Read opcode
    268 00000114 BF01000000              	mov	rdi, 1		; Set stdin
