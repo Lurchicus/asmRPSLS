@@ -145,7 +145,7 @@ ZEROB	equ	0x0000
 
 ; Generic string
 	sto	db	"%s",0
-	nlst	db	"-%s-",10,0
+	nlst	db	"Input string was: %s",10,0
 
 ; ************************************************************************
 ; Splash screen, help screen and prompt text  
