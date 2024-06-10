@@ -15,6 +15,10 @@ BITS 64
 
 section	.data
 
+; ************************************************************************
+; Constants
+; ************************************************************************
+
 NOFLOAT	equ	0	; Non-floating point output for Printf (non-float)
 XITCMD	equ	60	; Exit opcode (syscall)
 WRITEC	equ	1	; Write syscall
@@ -26,7 +30,12 @@ ONEB	equ	0x0001
 ZEROW	equ	0x0000000000000000
 ZEROB	equ	0x0000
 
-; Character proxies (input strings) and commands
+; ************************************************************************
+; Command strings (proxies)
+; This contains the individual command strings, a byte list of proxy 
+; numeric values and a list of addresses for the start of each null 
+; terminated string.
+; ************************************************************************
 	proxrck	db	"rock",0		; 0 
 	proxpap	db	"paper",0		; 1
 	proxsrs	db	"scissors",0		; 2
@@ -38,14 +47,25 @@ ZEROB	equ	0x0000
 	pscor	db	"score",0		; 7 (score request)
 	pdbug	db	"debug",0		; 8 (debug mode)
 	pquit	db	"quit",0		; 9 (quit request)
+	pend 	equ	$			; list end address
 
 	verbnum	db	0, 1, 2, 3, 4, 5, 6, 7, 8, 9
 
-; Input address array
 	saddr	dq	$proxrck, $proxpap, $proxsrs, $proxliz, $proxspk
-		dq	$phelp, $plice, $pscor, $pdbug, $pquit
+		dq	$phelp, $plice, $pscor, $pdbug, $pquit, $pend
 
-; Action verb text	Rock (player select)
+; ************************************************************************
+; Action verb text
+; This is a list of actions that describe a "combat" resolution (for
+; example: rock vs paper, rock "is covered by" paper). 
+; The following contains five groups of five strings that describe all the
+; possible resolutions and a list of the start addres of each null
+; terminated string.
+;
+; Lookup calculation: addr+(((PLAYERGUESS*5)+COMPGUESS)*ADDRLEN)
+;		      verbadd+(((PLAYERGUESS*5)+COMPGUESS)*64)
+; ************************************************************************
+;			Rock
 	rck_rck	db	"matches",0		; Rock (Computer select)
 	rck_pap	db	"is covered by",0	; Paper
 	rck_srs	db	"smashes",0		; Scissors
@@ -75,54 +95,72 @@ ZEROB	equ	0x0000
 	spk_srs	db	"smashes",0		; Scissors
 	spk_liz	db	"is poisoned by",0	; Lizard
 	spk_spk	db	"matches",0		; Spock
-
+	;		End address
+	av_end	equ	$
 ; Array of verb addresses (proxy index * 5)
 	verbadd	dq	$rck_rck, $rck_pap, $rck_srs, $rck_liz, $rck_spk
 		dq	$pap_rck, $pap_pap, $pap_srs, $pap_liz, $pap_spk
 		dq	$srs_rck, $srs_pap, $srs_srs, $srs_liz,	$srs_spk
 		dq	$liz_rck, $liz_pap, $liz_srs, $liz_liz,	$liz_spk
 		dq	$spk_rck, $spk_pap, $spk_srs, $spk_liz, $spk_spk
-	
-; Results map           rck pap srs liz spk     byte int
+		dq	$av_end
+
+; ************************************************************************
+; Results map lookup table
+; The following table is used to determine a win or loss condition for the
+; player (1: player win, -1: Computer win, 0: Tie). The calculation to 
+; lookup the action verb above is the same for a lookup into this table.
+; Also included is the result text and starting address for each null
+; terminated string. 
+;
+; Lookup calculation: resaddr+(((PLAYERGUESS*5)+COMPGUESS)*ADDRLEN)
+;		      outcome+(((PLAYERGUESS*5)+COMPGUESS)*8)
+;*************************************************************************
+;                        rck pap srs liz spk     byte int
 	outcome	db	 0, -1,  1,  1,  1	; Rock
 		db	 1,  0, -1, -1,  1	; Paper
 		db	-1,  1,  0,  1, -1	; Scissors
 		db	-1,  1, -1,  0,  1	; Lizard
 		db	 1, -1,  1, -1,  0	; Spock
 ;			1: Player win, -1: Computer win, 0: Tie
-
-	playwin	db	"Player loses to computer!",0	; -1
-	compwin	db	"Player wins over computer!",0	; 1
+	playwin	db	"Player wins over computer!",0	; 1
+	compwin	db	"Player loses to computer!",0	; -1
 	bothtie	db	"Player ties with computer!",0	; 0
-
+	rsltend	equ	$
 ; Result addresss
-	rsltadd	dq	$playwin, $compwin, $bothtie
+	rsltadd	dq	$playwin, $compwin, $bothtie, $rsltend
 
-; Score
+; ************************************************************************
+; Score and "round" info
+; ************************************************************************
 	pscore	dq	0	; Player score
 	cscore	dq	0	; Computer score
 	ties	dq	0	; Tie results
 	rounds	dq	0	; Round counter
+	cmdnum	db	0	; Command number
 
 ; Flags
 	debugf	dq	0	; 0: no debug, 1: debug
 
 ; Generic string
 	sto	db	"%s",0
-	nlst	db	"-%s-",0
+	nlst	db	"-%s-",10,0
 
-; Splash screen
-	splashs	db	"RPSLS v1.0 a Rock, Paper, Scissors, Lizard, Spock game by Dan Rhea, 2024",10
-		db	"as designed by Sam Kass and Karen Bryla. Licensed under the MIT License.",10,10,0
-
+; ************************************************************************
+; Splash screen, help screen and prompt text  
+; ************************************************************************
+	splashs	db	"RPSLS v1.0 a Rock, Paper, Scissors, Lizard, "
+		db	"Spock game by Dan Rhea, 2024",10
+		db	"as designed by Sam Kass and Karen Bryla. "
+		db	"Licensed under the MIT License.",10,10,0
 ; Help
-	helps	db	"Enter 'rock' 'paper' 'scissors' 'lizard' or 'spock' to play a round or",10
-		db	"the commands 'help' 'license' 'score' 'debug' or 'quit'.",10,10,0
-
+	helps	db	"Enter 'rock' 'paper' 'scissors' 'lizard' or "
+		db	"'spock' to play a round or",10
+		db	"the commands 'help' 'license' 'score' 'debug' "
+		db	"or 'quit'.",10,10,0
 ; Prompt
 	prompts	db	"rpsls: ",0
 	plen	equ	$-prompts
-
 ; Goodbye
 	bye	db	"Done! Thanks for playing.",10,0
 
@@ -149,7 +187,7 @@ main:
 
 	;mov	rax, NOFLOAT
 	;mov	rdi, stest
-	;mov	rsi, [verbadd+((PGUESS*5)+CGUESS)*ADLEN] 
+	;mov	rsi, [verbadd+(((PGUESS*5)+CGUESS)*ADLEN)] 
 	;call	printf
 
 ; Show splash

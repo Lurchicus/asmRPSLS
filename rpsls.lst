@@ -15,375 +15,412 @@
     15                                  
     16                                  section	.data
     17                                  
-    18                                  NOFLOAT	equ	0	; Non-floating point output for Printf (non-float)
-    19                                  XITCMD	equ	60	; Exit opcode (syscall)
-    20                                  WRITEC	equ	1	; Write syscall
-    21                                  NORMAL	equ	0	; Normal exit flag
-    22                                  STDOUT	equ	1	; Standard output
-    23                                  ADLEN	equ	8	; Address length in bytes
-    24                                  ONEW	equ	0x0000000000000001
-    25                                  ONEB	equ	0x0001
-    26                                  ZEROW	equ	0x0000000000000000
-    27                                  ZEROB	equ	0x0000
-    28                                  
-    29                                  ; Character proxies (input strings) and commands
-    30 00000000 726F636B00              	proxrck	db	"rock",0		; 0 
-    31 00000005 706170657200            	proxpap	db	"paper",0		; 1
-    32 0000000B 73636973736F727300      	proxsrs	db	"scissors",0		; 2
-    33 00000014 6C697A61726400          	proxliz	db	"lizard",0		; 3
-    34 0000001B 73706F636B00            	proxspk	db	"spock",0		; 4
-    35                                  
-    36 00000021 68656C7000              	phelp	db	"help",0		; 5 (help request)
-    37 00000026 6C6963656E736500        	plice	db	"license",0		; 6 (license info... MIT)
-    38 0000002E 73636F726500            	pscor	db	"score",0		; 7 (score request)
-    39 00000034 646562756700            	pdbug	db	"debug",0		; 8 (debug mode)
-    40 0000003A 7175697400              	pquit	db	"quit",0		; 9 (quit request)
-    41                                  
-    42 0000003F 000102030405060708-     	verbnum	db	0, 1, 2, 3, 4, 5, 6, 7, 8, 9
-    42 00000048 09                 
-    43                                  
-    44                                  ; Input address array
-    45 00000049 [0000000000000000]-     	saddr	dq	$proxrck, $proxpap, $proxsrs, $proxliz, $proxspk
-    45 00000051 [0500000000000000]-
-    45 00000059 [0B00000000000000]-
-    45 00000061 [1400000000000000]-
-    45 00000069 [1B00000000000000] 
-    46 00000071 [2100000000000000]-     		dq	$phelp, $plice, $pscor, $pdbug, $pquit
-    46 00000079 [2600000000000000]-
-    46 00000081 [2E00000000000000]-
-    46 00000089 [3400000000000000]-
-    46 00000091 [3A00000000000000] 
-    47                                  
-    48                                  ; Action verb text	Rock (player select)
-    49 00000099 6D61746368657300        	rck_rck	db	"matches",0		; Rock (Computer select)
-    50 000000A1 697320636F76657265-     	rck_pap	db	"is covered by",0	; Paper
-    50 000000AA 6420627900         
-    51 000000AF 736D617368657300        	rck_srs	db	"smashes",0		; Scissors
-    52 000000B7 6372757368657300        	rck_liz	db	"crushes",0		; Lizard
-    53 000000BF 6973207661706F7269-     	rck_spk	db	"is vaporized by",0	; Spock
-    53 000000C8 7A656420627900     
-    54                                  ;			Paper
-    55 000000CF 636F7665727300          	pap_rck	db	"covers",0		; Rock
-    56 000000D6 6D61746368657300        	pap_pap	db	"matches",0		; Paper
-    57 000000DE 697320637574206279-     	pap_srs	db	"is cut by",0		; Scissors
-    57 000000E7 00                 
-    58 000000E8 697320656174656E20-     	pap_liz	db	"is eaten by",0		; Lizard
-    58 000000F1 627900             
-    59 000000F4 64697370726F766573-     	pap_spk	db	"disproves",0		; Spock
-    59 000000FD 00                 
-    60                                  ;			Scissors
-    61 000000FE 6172652062726F6B65-     	srs_rck	db	"are broken by",0	; Rock
-    61 00000107 6E20627900         
-    62 0000010C 6375747300              	srs_pap	db	"cuts",0		; Paper
-    63 00000111 6D61746368657300        	srs_srs	db	"matches",0		; Scissors
-    64 00000119 646563617069746174-     	srs_liz	db	"decapitates",0		; Lizard
-    64 00000122 657300             
-    65 00000125 61726520736D617368-     	srs_spk	db	"are smashed by",0	; Spock
-    65 0000012E 656420627900       
-    66                                  ;			Lizard
-    67 00000134 697320637275736865-     	liz_rck	db	"is crushed by",0	; Rock
-    67 0000013D 6420627900         
-    68 00000142 6561747300              	liz_pap db	"eats",0		; Paper
-    69 00000147 697320646563617069-     	liz_srs	db	"is decapitated by",0	; Scissors
-    69 00000150 746174656420627900 
-    70 00000159 6D61746368657300        	liz_liz	db	"matches",0		; Lizard
-    71 00000161 706F69736F6E7300        	liz_spk	db	"poisons",0		; Spock
-    72                                  ;			Spock
-    73 00000169 7661706F72697A6573-     	spk_rck	db	"vaporizes",0		; Rock
-    73 00000172 00                 
-    74 00000173 69732064697370726F-     	spk_pap	db	"is disproved by",0	; Paper
-    74 0000017C 76656420627900     
-    75 00000183 736D617368657300        	spk_srs	db	"smashes",0		; Scissors
-    76 0000018B 697320706F69736F6E-     	spk_liz	db	"is poisoned by",0	; Lizard
-    76 00000194 656420627900       
-    77 0000019A 6D61746368657300        	spk_spk	db	"matches",0		; Spock
-    78                                  
-    79                                  ; Array of verb addresses (proxy index * 5)
-    80 000001A2 [9900000000000000]-     	verbadd	dq	$rck_rck, $rck_pap, $rck_srs, $rck_liz, $rck_spk
-    80 000001AA [A100000000000000]-
-    80 000001B2 [AF00000000000000]-
-    80 000001BA [B700000000000000]-
-    80 000001C2 [BF00000000000000] 
-    81 000001CA [CF00000000000000]-     		dq	$pap_rck, $pap_pap, $pap_srs, $pap_liz, $pap_spk
-    81 000001D2 [D600000000000000]-
-    81 000001DA [DE00000000000000]-
-    81 000001E2 [E800000000000000]-
-    81 000001EA [F400000000000000] 
-    82 000001F2 [FE00000000000000]-     		dq	$srs_rck, $srs_pap, $srs_srs, $srs_liz,	$srs_spk
-    82 000001FA [0C01000000000000]-
-    82 00000202 [1101000000000000]-
-    82 0000020A [1901000000000000]-
-    82 00000212 [2501000000000000] 
-    83 0000021A [3401000000000000]-     		dq	$liz_rck, $liz_pap, $liz_srs, $liz_liz,	$liz_spk
-    83 00000222 [4201000000000000]-
-    83 0000022A [4701000000000000]-
-    83 00000232 [5901000000000000]-
-    83 0000023A [6101000000000000] 
-    84 00000242 [6901000000000000]-     		dq	$spk_rck, $spk_pap, $spk_srs, $spk_liz, $spk_spk
-    84 0000024A [7301000000000000]-
-    84 00000252 [8301000000000000]-
-    84 0000025A [8B01000000000000]-
-    84 00000262 [9A01000000000000] 
-    85                                  	
-    86                                  ; Results map           rck pap srs liz spk     byte int
-    87 0000026A 00FF010101              	outcome	db	 0, -1,  1,  1,  1	; Rock
-    88 0000026F 0100FFFF01              		db	 1,  0, -1, -1,  1	; Paper
-    89 00000274 FF010001FF              		db	-1,  1,  0,  1, -1	; Scissors
-    90 00000279 FF01FF0001              		db	-1,  1, -1,  0,  1	; Lizard
-    91 0000027E 01FF01FF00              		db	 1, -1,  1, -1,  0	; Spock
-    92                                  ;			1: Player win, -1: Computer win, 0: Tie
-    93                                  
-    94 00000283 506C61796572206C6F-     	playwin	db	"Player loses to computer!",0	; -1
-    94 0000028C 73657320746F20636F-
-    94 00000295 6D70757465722100   
-    95 0000029D 506C61796572207769-     	compwin	db	"Player wins over computer!",0	; 1
-    95 000002A6 6E73206F7665722063-
-    95 000002AF 6F6D70757465722100 
-    96 000002B8 506C61796572207469-     	bothtie	db	"Player ties with computer!",0	; 0
-    96 000002C1 657320776974682063-
-    96 000002CA 6F6D70757465722100 
-    97                                  
-    98                                  ; Result addresss
-    99 000002D3 [8302000000000000]-     	rsltadd	dq	$playwin, $compwin, $bothtie
-    99 000002DB [9D02000000000000]-
-    99 000002E3 [B802000000000000] 
-   100                                  
-   101                                  ; Score
-   102 000002EB 0000000000000000        	pscore	dq	0	; Player score
-   103 000002F3 0000000000000000        	cscore	dq	0	; Computer score
-   104 000002FB 0000000000000000        	ties	dq	0	; Tie results
-   105 00000303 0000000000000000        	rounds	dq	0	; Round counter
-   106                                  
-   107                                  ; Flags
-   108 0000030B 0000000000000000        	debugf	dq	0	; 0: no debug, 1: debug
-   109                                  
-   110                                  ; Generic string
-   111 00000313 257300                  	sto	db	"%s",0
-   112 00000316 2D25732D00              	nlst	db	"-%s-",0
-   113                                  
-   114                                  ; Splash screen
-   115 0000031B 5250534C532076312E-     	splashs	db	"RPSLS v1.0 a Rock, Paper, Scissors, Lizard, Spock game by Dan Rhea, 2024",10
-   115 00000324 30206120526F636B2C-
-   115 0000032D 2050617065722C2053-
-   115 00000336 636973736F72732C20-
-   115 0000033F 4C697A6172642C2053-
-   115 00000348 706F636B2067616D65-
-   115 00000351 2062792044616E2052-
-   115 0000035A 6865612C2032303234-
-   115 00000363 0A                 
-   116 00000364 61732064657369676E-     		db	"as designed by Sam Kass and Karen Bryla. Licensed under the MIT License.",10,10,0
-   116 0000036D 65642062792053616D-
-   116 00000376 204B61737320616E64-
-   116 0000037F 204B6172656E204272-
-   116 00000388 796C612E204C696365-
-   116 00000391 6E73656420756E6465-
-   116 0000039A 7220746865204D4954-
-   116 000003A3 204C6963656E73652E-
-   116 000003AC 0A0A00             
-   117                                  
-   118                                  ; Help
-   119 000003AF 456E7465722027726F-     	helps	db	"Enter 'rock' 'paper' 'scissors' 'lizard' or 'spock' to play a round or",10
-   119 000003B8 636B27202770617065-
-   119 000003C1 722720277363697373-
-   119 000003CA 6F72732720276C697A-
-   119 000003D3 61726427206F722027-
-   119 000003DC 73706F636B2720746F-
-   119 000003E5 20706C617920612072-
-   119 000003EE 6F756E64206F720A   
-   120 000003F6 74686520636F6D6D61-     		db	"the commands 'help' 'license' 'score' 'debug' or 'quit'.",10,10,0
-   120 000003FF 6E6473202768656C70-
-   120 00000408 2720276C6963656E73-
-   120 00000411 6527202773636F7265-
-   120 0000041A 272027646562756727-
-   120 00000423 206F72202771756974-
-   120 0000042C 272E0A0A00         
-   121                                  
-   122                                  ; Prompt
-   123 00000431 7270736C733A2000        	prompts	db	"rpsls: ",0
-   124                                  	plen	equ	$-prompts
-   125                                  
-   126                                  ; Goodbye
-   127 00000439 446F6E652120546861-     	bye	db	"Done! Thanks for playing.",10,0
-   127 00000442 6E6B7320666F722070-
-   127 0000044B 6C6179696E672E0A00 
-   128                                  
-   129 00000454 537472696E673A2050-     	stest	db	"String: Player selected action verb:'%s'.",10,0
-   129 0000045D 6C617965722073656C-
-   129 00000466 656374656420616374-
-   129 0000046F 696F6E20766572623A-
-   129 00000478 272573272E0A00     
-   130                                  
-   131                                  	CGUESS	equ	4
-   132                                  	PGUESS	equ	1
-   133                                  
-   134 0000047F 0A                      	NL	db	0xa	; newline
-   135                                  	inlen	equ	32	; Max buffer length
-   136                                  
-   137                                  section	.bss
-   138                                  
-   139 00000000 <res 21h>               	inbuf	resb	inlen+1	; add room for string and a null terminator
-   140                                  
-   141                                  section	.text
-   142                                  
-   143                                  extern	printf		; We will be using the c library printf procedure
+    18                                  ; ************************************************************************
+    19                                  ; Constants
+    20                                  ; ************************************************************************
+    21                                  
+    22                                  NOFLOAT	equ	0	; Non-floating point output for Printf (non-float)
+    23                                  XITCMD	equ	60	; Exit opcode (syscall)
+    24                                  WRITEC	equ	1	; Write syscall
+    25                                  NORMAL	equ	0	; Normal exit flag
+    26                                  STDOUT	equ	1	; Standard output
+    27                                  ADLEN	equ	8	; Address length in bytes
+    28                                  ONEW	equ	0x0000000000000001
+    29                                  ONEB	equ	0x0001
+    30                                  ZEROW	equ	0x0000000000000000
+    31                                  ZEROB	equ	0x0000
+    32                                  
+    33                                  ; ************************************************************************
+    34                                  ; Command strings (proxies)
+    35                                  ; This contains the individual command strings, a byte list of proxy 
+    36                                  ; numeric values and a list of addresses for the start of each null 
+    37                                  ; terminated string.
+    38                                  ; ************************************************************************
+    39 00000000 726F636B00              	proxrck	db	"rock",0		; 0 
+    40 00000005 706170657200            	proxpap	db	"paper",0		; 1
+    41 0000000B 73636973736F727300      	proxsrs	db	"scissors",0		; 2
+    42 00000014 6C697A61726400          	proxliz	db	"lizard",0		; 3
+    43 0000001B 73706F636B00            	proxspk	db	"spock",0		; 4
+    44                                  
+    45 00000021 68656C7000              	phelp	db	"help",0		; 5 (help request)
+    46 00000026 6C6963656E736500        	plice	db	"license",0		; 6 (license info... MIT)
+    47 0000002E 73636F726500            	pscor	db	"score",0		; 7 (score request)
+    48 00000034 646562756700            	pdbug	db	"debug",0		; 8 (debug mode)
+    49 0000003A 7175697400              	pquit	db	"quit",0		; 9 (quit request)
+    50                                  	pend 	equ	$			; list end address
+    51                                  
+    52 0000003F 000102030405060708-     	verbnum	db	0, 1, 2, 3, 4, 5, 6, 7, 8, 9
+    52 00000048 09                 
+    53                                  
+    54 00000049 [0000000000000000]-     	saddr	dq	$proxrck, $proxpap, $proxsrs, $proxliz, $proxspk
+    54 00000051 [0500000000000000]-
+    54 00000059 [0B00000000000000]-
+    54 00000061 [1400000000000000]-
+    54 00000069 [1B00000000000000] 
+    55 00000071 [2100000000000000]-     		dq	$phelp, $plice, $pscor, $pdbug, $pquit, $pend
+    55 00000079 [2600000000000000]-
+    55 00000081 [2E00000000000000]-
+    55 00000089 [3400000000000000]-
+    55 00000091 [3A00000000000000]-
+    55 00000099 [3F00000000000000] 
+    56                                  
+    57                                  ; ************************************************************************
+    58                                  ; Action verb text
+    59                                  ; This is a list of actions that describe a "combat" resolution (for
+    60                                  ; example: rock vs paper, rock "is covered by" paper). 
+    61                                  ; The following contains five groups of five strings that describe all the
+    62                                  ; possible resolutions and a list of the start addres of each null
+    63                                  ; terminated string.
+    64                                  ;
+    65                                  ; Lookup calculation: addr+(((PLAYERGUESS*5)+COMPGUESS)*ADDRLEN)
+    66                                  ;		      verbadd+(((PLAYERGUESS*5)+COMPGUESS)*64)
+    67                                  ; ************************************************************************
+    68                                  ;			Rock
+    69 000000A1 6D61746368657300        	rck_rck	db	"matches",0		; Rock (Computer select)
+    70 000000A9 697320636F76657265-     	rck_pap	db	"is covered by",0	; Paper
+    70 000000B2 6420627900         
+    71 000000B7 736D617368657300        	rck_srs	db	"smashes",0		; Scissors
+    72 000000BF 6372757368657300        	rck_liz	db	"crushes",0		; Lizard
+    73 000000C7 6973207661706F7269-     	rck_spk	db	"is vaporized by",0	; Spock
+    73 000000D0 7A656420627900     
+    74                                  ;			Paper
+    75 000000D7 636F7665727300          	pap_rck	db	"covers",0		; Rock
+    76 000000DE 6D61746368657300        	pap_pap	db	"matches",0		; Paper
+    77 000000E6 697320637574206279-     	pap_srs	db	"is cut by",0		; Scissors
+    77 000000EF 00                 
+    78 000000F0 697320656174656E20-     	pap_liz	db	"is eaten by",0		; Lizard
+    78 000000F9 627900             
+    79 000000FC 64697370726F766573-     	pap_spk	db	"disproves",0		; Spock
+    79 00000105 00                 
+    80                                  ;			Scissors
+    81 00000106 6172652062726F6B65-     	srs_rck	db	"are broken by",0	; Rock
+    81 0000010F 6E20627900         
+    82 00000114 6375747300              	srs_pap	db	"cuts",0		; Paper
+    83 00000119 6D61746368657300        	srs_srs	db	"matches",0		; Scissors
+    84 00000121 646563617069746174-     	srs_liz	db	"decapitates",0		; Lizard
+    84 0000012A 657300             
+    85 0000012D 61726520736D617368-     	srs_spk	db	"are smashed by",0	; Spock
+    85 00000136 656420627900       
+    86                                  ;			Lizard
+    87 0000013C 697320637275736865-     	liz_rck	db	"is crushed by",0	; Rock
+    87 00000145 6420627900         
+    88 0000014A 6561747300              	liz_pap db	"eats",0		; Paper
+    89 0000014F 697320646563617069-     	liz_srs	db	"is decapitated by",0	; Scissors
+    89 00000158 746174656420627900 
+    90 00000161 6D61746368657300        	liz_liz	db	"matches",0		; Lizard
+    91 00000169 706F69736F6E7300        	liz_spk	db	"poisons",0		; Spock
+    92                                  ;			Spock
+    93 00000171 7661706F72697A6573-     	spk_rck	db	"vaporizes",0		; Rock
+    93 0000017A 00                 
+    94 0000017B 69732064697370726F-     	spk_pap	db	"is disproved by",0	; Paper
+    94 00000184 76656420627900     
+    95 0000018B 736D617368657300        	spk_srs	db	"smashes",0		; Scissors
+    96 00000193 697320706F69736F6E-     	spk_liz	db	"is poisoned by",0	; Lizard
+    96 0000019C 656420627900       
+    97 000001A2 6D61746368657300        	spk_spk	db	"matches",0		; Spock
+    98                                  	;		End address
+    99                                  	av_end	equ	$
+   100                                  ; Array of verb addresses (proxy index * 5)
+   101 000001AA [A100000000000000]-     	verbadd	dq	$rck_rck, $rck_pap, $rck_srs, $rck_liz, $rck_spk
+   101 000001B2 [A900000000000000]-
+   101 000001BA [B700000000000000]-
+   101 000001C2 [BF00000000000000]-
+   101 000001CA [C700000000000000] 
+   102 000001D2 [D700000000000000]-     		dq	$pap_rck, $pap_pap, $pap_srs, $pap_liz, $pap_spk
+   102 000001DA [DE00000000000000]-
+   102 000001E2 [E600000000000000]-
+   102 000001EA [F000000000000000]-
+   102 000001F2 [FC00000000000000] 
+   103 000001FA [0601000000000000]-     		dq	$srs_rck, $srs_pap, $srs_srs, $srs_liz,	$srs_spk
+   103 00000202 [1401000000000000]-
+   103 0000020A [1901000000000000]-
+   103 00000212 [2101000000000000]-
+   103 0000021A [2D01000000000000] 
+   104 00000222 [3C01000000000000]-     		dq	$liz_rck, $liz_pap, $liz_srs, $liz_liz,	$liz_spk
+   104 0000022A [4A01000000000000]-
+   104 00000232 [4F01000000000000]-
+   104 0000023A [6101000000000000]-
+   104 00000242 [6901000000000000] 
+   105 0000024A [7101000000000000]-     		dq	$spk_rck, $spk_pap, $spk_srs, $spk_liz, $spk_spk
+   105 00000252 [7B01000000000000]-
+   105 0000025A [8B01000000000000]-
+   105 00000262 [9301000000000000]-
+   105 0000026A [A201000000000000] 
+   106 00000272 [AA01000000000000]      		dq	$av_end
+   107                                  
+   108                                  ; ************************************************************************
+   109                                  ; Results map lookup table
+   110                                  ; The following table is used to determine a win or loss condition for the
+   111                                  ; player (1: player win, -1: Computer win, 0: Tie). The calculation to 
+   112                                  ; lookup the action verb above is the same for a lookup into this table.
+   113                                  ; Also included is the result text and starting address for each null
+   114                                  ; terminated string. 
+   115                                  ;
+   116                                  ; Lookup calculation: resaddr+(((PLAYERGUESS*5)+COMPGUESS)*ADDRLEN)
+   117                                  ;		      outcome+(((PLAYERGUESS*5)+COMPGUESS)*8)
+   118                                  ;*************************************************************************
+   119                                  ;                        rck pap srs liz spk     byte int
+   120 0000027A 00FF010101              	outcome	db	 0, -1,  1,  1,  1	; Rock
+   121 0000027F 0100FFFF01              		db	 1,  0, -1, -1,  1	; Paper
+   122 00000284 FF010001FF              		db	-1,  1,  0,  1, -1	; Scissors
+   123 00000289 FF01FF0001              		db	-1,  1, -1,  0,  1	; Lizard
+   124 0000028E 01FF01FF00              		db	 1, -1,  1, -1,  0	; Spock
+   125                                  ;			1: Player win, -1: Computer win, 0: Tie
+   126 00000293 506C61796572207769-     	playwin	db	"Player wins over computer!",0	; 1
+   126 0000029C 6E73206F7665722063-
+   126 000002A5 6F6D70757465722100 
+   127 000002AE 506C61796572206C6F-     	compwin	db	"Player loses to computer!",0	; -1
+   127 000002B7 73657320746F20636F-
+   127 000002C0 6D70757465722100   
+   128 000002C8 506C61796572207469-     	bothtie	db	"Player ties with computer!",0	; 0
+   128 000002D1 657320776974682063-
+   128 000002DA 6F6D70757465722100 
+   129                                  	rsltend	equ	$
+   130                                  ; Result addresss
+   131 000002E3 [9302000000000000]-     	rsltadd	dq	$playwin, $compwin, $bothtie, $rsltend
+   131 000002EB [AE02000000000000]-
+   131 000002F3 [C802000000000000]-
+   131 000002FB [E302000000000000] 
+   132                                  
+   133                                  ; ************************************************************************
+   134                                  ; Score and "round" info
+   135                                  ; ************************************************************************
+   136 00000303 0000000000000000        	pscore	dq	0	; Player score
+   137 0000030B 0000000000000000        	cscore	dq	0	; Computer score
+   138 00000313 0000000000000000        	ties	dq	0	; Tie results
+   139 0000031B 0000000000000000        	rounds	dq	0	; Round counter
+   140 00000323 00                      	cmdnum	db	0	; Command number
+   141                                  
+   142                                  ; Flags
+   143 00000324 0000000000000000        	debugf	dq	0	; 0: no debug, 1: debug
    144                                  
-   145                                  	global	main
-   146                                  main:
-   147 00000000 55                      	push	rbp		; prologue
-   148 00000001 4889E5                  	mov	rbp, rsp
-   149                                  
-   150                                  	;mov	rax, NOFLOAT
-   151                                  	;mov	rdi, stest
-   152                                  	;mov	rsi, [verbadd+((PGUESS*5)+CGUESS)*ADLEN] 
-   153                                  	;call	printf
-   154                                  
-   155                                  ; Show splash
-   156                                  splash:
-   157 00000004 B800000000              	mov	rax, NOFLOAT	; non-float output
-   158 00000009 48BF-                   	mov	rdi, sto	; string format (%s)
-   158 0000000B [1303000000000000] 
-   159 00000013 48BE-                   	mov	rsi, splashs	; text to output
-   159 00000015 [1B03000000000000] 
-   160 0000001D E8(00000000)            	call	printf
-   161                                  
-   162                                  ; Show help (basic commands)
-   163                                  help:
-   164 00000022 B800000000              	mov	rax, NOFLOAT
-   165 00000027 48BF-                   	mov	rdi, sto
-   165 00000029 [1303000000000000] 
-   166 00000031 48BE-                   	mov	rsi, helps
-   166 00000033 [AF03000000000000] 
-   167 0000003B E8(00000000)            	call	printf
+   145                                  ; Generic string
+   146 0000032C 257300                  	sto	db	"%s",0
+   147 0000032F 2D25732D0A00            	nlst	db	"-%s-",10,0
+   148                                  
+   149                                  ; ************************************************************************
+   150                                  ; Splash screen, help screen and prompt text  
+   151                                  ; ************************************************************************
+   152 00000335 5250534C532076312E-     	splashs	db	"RPSLS v1.0 a Rock, Paper, Scissors, Lizard, "
+   152 0000033E 30206120526F636B2C-
+   152 00000347 2050617065722C2053-
+   152 00000350 636973736F72732C20-
+   152 00000359 4C697A6172642C20   
+   153 00000361 53706F636B2067616D-     		db	"Spock game by Dan Rhea, 2024",10
+   153 0000036A 652062792044616E20-
+   153 00000373 526865612C20323032-
+   153 0000037C 340A               
+   154 0000037E 61732064657369676E-     		db	"as designed by Sam Kass and Karen Bryla. "
+   154 00000387 65642062792053616D-
+   154 00000390 204B61737320616E64-
+   154 00000399 204B6172656E204272-
+   154 000003A2 796C612E20         
+   155 000003A7 4C6963656E73656420-     		db	"Licensed under the MIT License.",10,10,0
+   155 000003B0 756E64657220746865-
+   155 000003B9 204D4954204C696365-
+   155 000003C2 6E73652E0A0A00     
+   156                                  ; Help
+   157 000003C9 456E7465722027726F-     	helps	db	"Enter 'rock' 'paper' 'scissors' 'lizard' or "
+   157 000003D2 636B27202770617065-
+   157 000003DB 722720277363697373-
+   157 000003E4 6F72732720276C697A-
+   157 000003ED 61726427206F7220   
+   158 000003F5 2773706F636B272074-     		db	"'spock' to play a round or",10
+   158 000003FE 6F20706C6179206120-
+   158 00000407 726F756E64206F720A 
+   159 00000410 74686520636F6D6D61-     		db	"the commands 'help' 'license' 'score' 'debug' "
+   159 00000419 6E6473202768656C70-
+   159 00000422 2720276C6963656E73-
+   159 0000042B 6527202773636F7265-
+   159 00000434 272027646562756727-
+   159 0000043D 20                 
+   160 0000043E 6F7220277175697427-     		db	"or 'quit'.",10,10,0
+   160 00000447 2E0A0A00           
+   161                                  ; Prompt
+   162 0000044B 7270736C733A2000        	prompts	db	"rpsls: ",0
+   163                                  	plen	equ	$-prompts
+   164                                  ; Goodbye
+   165 00000453 446F6E652120546861-     	bye	db	"Done! Thanks for playing.",10,0
+   165 0000045C 6E6B7320666F722070-
+   165 00000465 6C6179696E672E0A00 
+   166                                  
+   167 0000046E 537472696E673A2050-     	stest	db	"String: Player selected action verb:'%s'.",10,0
+   167 00000477 6C617965722073656C-
+   167 00000480 656374656420616374-
+   167 00000489 696F6E20766572623A-
+   167 00000492 272573272E0A00     
    168                                  
-   169                                  ; Show prompt
-   170                                  prompt:
-   171                                  ; Prompt doesn't seem to want to work with printf so I will try it with a
-   172                                  ; stdout syscall... it worked!
-   173 00000040 B801000000              	mov	rax, WRITEC	; Write
-   174 00000045 BF01000000              	mov	rdi, STDOUT	; Standard out
-   175 0000004A 48BE-                    	mov	rsi, prompts	; Player prompt
-   175 0000004C [3104000000000000] 
-   176 00000054 BA08000000              	mov	rdx, plen	; Prompt length
-   177 00000059 0F05                    	syscall
+   169                                  	CGUESS	equ	4
+   170                                  	PGUESS	equ	1
+   171                                  
+   172 00000499 0A                      	NL	db	0xa	; newline
+   173                                  	inlen	equ	32	; Max buffer length
+   174                                  
+   175                                  section	.bss
+   176                                  
+   177 00000000 <res 21h>               	inbuf	resb	inlen+1	; add room for string and a null terminator
    178                                  
-   179                                  ; Get input from player
-   180 0000005B 48BF-                   	mov	rdi, inbuf	; Input buffer
-   180 0000005D [0000000000000000] 
-   181 00000065 BE20000000              	mov	rsi, inlen	; Buffer length
-   182 0000006A E88A000000              	call	reads
-   183                                  
-   184                                  ; for now, echo input and exit
-   185 0000006F B800000000              	mov	rax, NOFLOAT
-   186 00000074 48BF-                   	mov	rdi, nlst
-   186 00000076 [1603000000000000] 
-   187                                  ;	lea	rsi, [inbuf]	; Didn't help
-   188 0000007E 48BE-                   	mov	rsi, inbuf
-   188 00000080 [0000000000000000] 
-   189 00000088 E8(00000000)            	call	printf
-   190                                  
-   191 0000008D EB3C                    	jmp	end		; For now
+   179                                  section	.text
+   180                                  
+   181                                  extern	printf		; We will be using the c library printf procedure
+   182                                  
+   183                                  	global	main
+   184                                  main:
+   185 00000000 55                      	push	rbp		; prologue
+   186 00000001 4889E5                  	mov	rbp, rsp
+   187                                  
+   188                                  	;mov	rax, NOFLOAT
+   189                                  	;mov	rdi, stest
+   190                                  	;mov	rsi, [verbadd+(((PGUESS*5)+CGUESS)*ADLEN)] 
+   191                                  	;call	printf
    192                                  
-   193                                  ; Convert input to numeric offset (0-4, 5-9) (proxies and commands)
-   194                                  ; Get random pick for computer
-   195                                  ; Process commands if one is selected
-   196                                  ;	5: Show help again (go to help)
-   197                                  dohelp:
-   198 0000008F EB91                    	jmp	help		; show help and reprompt
+   193                                  ; Show splash
+   194                                  splash:
+   195 00000004 B800000000              	mov	rax, NOFLOAT	; non-float output
+   196 00000009 48BF-                   	mov	rdi, sto	; string format (%s)
+   196 0000000B [2C03000000000000] 
+   197 00000013 48BE-                   	mov	rsi, splashs	; text to output
+   197 00000015 [3503000000000000] 
+   198 0000001D E8(00000000)            	call	printf
    199                                  
-   200                                  ;	6: Show MIT license
-   201                                  ; 	7: Show current score
-   202                                  ;	8: Toggle debug (verbose info)
-   203                                  debug:
-   204 00000091 50                      	push	rax
-   205 00000092 48B8-                   	mov	rax, debugf
-   205 00000094 [0B03000000000000] 
-   206 0000009C 4883E001                	and	rax, 0x0000000000000001
-   207 000000A0 740F                    	jz	seton
-   208 000000A2 B800000000              	mov	rax, 0x0000000000000000
-   209 000000A7 48890425[0B030000]      	mov	[debugf], rax
-   210 000000AF EB0D                    	jmp	setoff
-   211                                  seton:
-   212 000000B1 B801000000              	mov	rax, 0x0000000000000001
-   213 000000B6 48890425[0B030000]      	mov	[debugf], rax
-   214                                  setoff:
-   215 000000BE 58                      	pop	rax
-   216 000000BF E97CFFFFFF              	jmp	prompt
-   217                                  
-   218                                  ;	9: Quit (show score and quit)
-   219                                  quit:
-   220                                  	; show score then exit
-   221 000000C4 EB05                    	jmp	end
-   222                                  ;	0-4: Determine outcome based on proxies
-   223                                  ; update scores
-   224                                  ; Output round resuts
-   225                                  ; Update round
-   226                                  ; Go to prompt
-   227 000000C6 E975FFFFFF              	jmp	prompt		; reprompt
+   200                                  ; Show help (basic commands)
+   201                                  help:
+   202 00000022 B800000000              	mov	rax, NOFLOAT
+   203 00000027 48BF-                   	mov	rdi, sto
+   203 00000029 [2C03000000000000] 
+   204 00000031 48BE-                   	mov	rsi, helps
+   204 00000033 [C903000000000000] 
+   205 0000003B E8(00000000)            	call	printf
+   206                                  
+   207                                  ; Show prompt
+   208                                  prompt:
+   209                                  ; Prompt doesn't seem to want to work with printf so I will try it with a
+   210                                  ; stdout syscall... it worked!
+   211 00000040 B801000000              	mov	rax, WRITEC	; Write
+   212 00000045 BF01000000              	mov	rdi, STDOUT	; Standard out
+   213 0000004A 48BE-                    	mov	rsi, prompts	; Player prompt
+   213 0000004C [4B04000000000000] 
+   214 00000054 BA08000000              	mov	rdx, plen	; Prompt length
+   215 00000059 0F05                    	syscall
+   216                                  
+   217                                  ; Get input from player
+   218 0000005B 48BF-                   	mov	rdi, inbuf	; Input buffer
+   218 0000005D [0000000000000000] 
+   219 00000065 BE20000000              	mov	rsi, inlen	; Buffer length
+   220 0000006A E88A000000              	call	reads
+   221                                  
+   222                                  ; for now, echo input and exit
+   223 0000006F B800000000              	mov	rax, NOFLOAT
+   224 00000074 48BF-                   	mov	rdi, nlst
+   224 00000076 [2F03000000000000] 
+   225                                  ;	lea	rsi, [inbuf]	; Didn't help
+   226 0000007E 48BE-                   	mov	rsi, inbuf
+   226 00000080 [0000000000000000] 
+   227 00000088 E8(00000000)            	call	printf
    228                                  
-   229                                  end:
-   230 000000CB B800000000              	mov	rax, NOFLOAT
-   231 000000D0 48BF-                   	mov	rdi, sto
-   231 000000D2 [1303000000000000] 
-   232 000000DA 48BE-                   	mov	rsi, bye
-   232 000000DC [3904000000000000] 
-   233 000000E4 E8(00000000)            	call	printf
-   234                                  
-   235 000000E9 4889EC                  	mov	rsp, rbp	; epilogue
-   236 000000EC 5D                      	pop	rbp
+   229 0000008D EB3C                    	jmp	end		; For now
+   230                                  
+   231                                  ; Convert input to numeric offset (0-4, 5-9) (proxies and commands)
+   232                                  ; Get random pick for computer
+   233                                  ; Process commands if one is selected
+   234                                  ;	5: Show help again (go to help)
+   235                                  dohelp:
+   236 0000008F EB91                    	jmp	help		; show help and reprompt
    237                                  
-   238 000000ED B83C000000              	mov	rax, XITCMD	; exit
-   239 000000F2 BF00000000              	mov	rdi, NORMAL	; normal exit
-   240 000000F7 0F05                    	syscall
-   241                                  
-   242                                  ; *********************************************************************
-   243                                  ; * reads ("safe" string reader), from                                *
-   244                                  ; * Beginning x64 Assembly Programming by Jo Van Hoey (Pages 163-165) * 
-   245                                  ; * I have redone the comments to insure I understand what the        *
-   246                                  ; * procedure does and how it works.                                  *
-   247                                  ; *********************************************************************
-   248                                  reads:
-   249                                  
-   250                                  section	.data
-   251                                  
-   252                                  section	.bss
-   253                                  
-   254 00000021 ??                      	.inputc	resb	1	; Single character
+   238                                  ;	6: Show MIT license
+   239                                  ; 	7: Show current score
+   240                                  ;	8: Toggle debug (verbose info)
+   241                                  debug:
+   242 00000091 50                      	push	rax
+   243 00000092 48B8-                   	mov	rax, debugf
+   243 00000094 [2403000000000000] 
+   244 0000009C 4883E001                	and	rax, 0x0000000000000001
+   245 000000A0 740F                    	jz	seton
+   246 000000A2 B800000000              	mov	rax, 0x0000000000000000
+   247 000000A7 48890425[24030000]      	mov	[debugf], rax
+   248 000000AF EB0D                    	jmp	setoff
+   249                                  seton:
+   250 000000B1 B801000000              	mov	rax, 0x0000000000000001
+   251 000000B6 48890425[24030000]      	mov	[debugf], rax
+   252                                  setoff:
+   253 000000BE 58                      	pop	rax
+   254 000000BF E97CFFFFFF              	jmp	prompt
    255                                  
-   256                                  section	.text
-   257                                  
-   258 000000F9 55                      	push	rbp
-   259 000000FA 4889E5                  	mov	rbp, rsp
-   260 000000FD 4154                    	push	r12		; save registers for argument use
-   261 000000FF 4155                    	push	r13
-   262 00000101 4156                    	push	r14
-   263 00000103 4989FC                  	mov	r12, rdi	; Address of input buffer
-   264 00000106 4989F5                  	mov	r13, rsi	; Max length to r13
-   265 00000109 41BE00000000            	mov	r14, 0		; Character counter (this was mov r14, r14 which didn't work.)
-   266                                  .readc:
-   267 0000010F B800000000              	mov	rax, 0		; Read opcode
-   268 00000114 BF01000000              	mov	rdi, 1		; Set stdin
-   269 00000119 488D3425[21000000]      	lea	rsi, [.inputc]	; Input address
-   270 00000121 BA01000000              	mov	rdx, 1		; characters to read
-   271 00000126 0F05                    	syscall
-   272 00000128 8A0425[21000000]        	mov	al, [.inputc]	; Input...
-   273 0000012F 3A0425[7F040000]        	cmp	al, byte[NL]	; a newline?
-   274 00000136 7419                    	je	.done		; end of input
-   275 00000138 3C61                    	cmp	al, 97		; less than 'a'?
-   276 0000013A 7CD3                    	jl	.readc		; Yes, ignore it
-   277 0000013C 3C7A                    	cmp	al, 122		; Greater than 'z'?
-   278 0000013E 7FCF                    	jg	.readc		; Yes, ignore as well
-   279 00000140 49FFC6                  	inc	r14		; Increment 'valid' input count
-   280 00000143 4D39EE                  	cmp	r14, r13	; max input?
-   281 00000146 77C7                    	ja	.readc		; Ignore stuff that would overflow the buffer
-   282 00000148 41880424                	mov	byte [r12], al	; Save safe byte to buffer
-   283 0000014C 49FFC4                  	inc	r12		; point to next byte in buffer
-   284 0000014F EBBE                    	jmp	.readc		; get next character
-   285                                  .done:
-   286 00000151 49FFC4                  	inc	r12		; bump buffer pointer
-   287 00000154 41C6042400              	mov	byte [r12], 0	; zero terminate the buffer
-   288 00000159 415E                    	pop	r14		; restore registers
-   289 0000015B 415D                    	pop	r13
-   290 0000015D 415C                    	pop	r12
-   291 0000015F C9                      leave
-   292 00000160 C3                      ret
+   256                                  ;	9: Quit (show score and quit)
+   257                                  quit:
+   258                                  	; show score then exit
+   259 000000C4 EB05                    	jmp	end
+   260                                  ;	0-4: Determine outcome based on proxies
+   261                                  ; update scores
+   262                                  ; Output round resuts
+   263                                  ; Update round
+   264                                  ; Go to prompt
+   265 000000C6 E975FFFFFF              	jmp	prompt		; reprompt
+   266                                  
+   267                                  end:
+   268 000000CB B800000000              	mov	rax, NOFLOAT
+   269 000000D0 48BF-                   	mov	rdi, sto
+   269 000000D2 [2C03000000000000] 
+   270 000000DA 48BE-                   	mov	rsi, bye
+   270 000000DC [5304000000000000] 
+   271 000000E4 E8(00000000)            	call	printf
+   272                                  
+   273 000000E9 4889EC                  	mov	rsp, rbp	; epilogue
+   274 000000EC 5D                      	pop	rbp
+   275                                  
+   276 000000ED B83C000000              	mov	rax, XITCMD	; exit
+   277 000000F2 BF00000000              	mov	rdi, NORMAL	; normal exit
+   278 000000F7 0F05                    	syscall
+   279                                  
+   280                                  ; *********************************************************************
+   281                                  ; * reads ("safe" string reader), from                                *
+   282                                  ; * Beginning x64 Assembly Programming by Jo Van Hoey (Pages 163-165) * 
+   283                                  ; * I have redone the comments to insure I understand what the        *
+   284                                  ; * procedure does and how it works.                                  *
+   285                                  ; *********************************************************************
+   286                                  reads:
+   287                                  
+   288                                  section	.data
+   289                                  
+   290                                  section	.bss
+   291                                  
+   292 00000021 ??                      	.inputc	resb	1	; Single character
    293                                  
+   294                                  section	.text
+   295                                  
+   296 000000F9 55                      	push	rbp
+   297 000000FA 4889E5                  	mov	rbp, rsp
+   298 000000FD 4154                    	push	r12		; save registers for argument use
+   299 000000FF 4155                    	push	r13
+   300 00000101 4156                    	push	r14
+   301 00000103 4989FC                  	mov	r12, rdi	; Address of input buffer
+   302 00000106 4989F5                  	mov	r13, rsi	; Max length to r13
+   303 00000109 41BE00000000            	mov	r14, 0		; Character counter (this was mov r14, r14 which didn't work.)
+   304                                  .readc:
+   305 0000010F B800000000              	mov	rax, 0		; Read opcode
+   306 00000114 BF01000000              	mov	rdi, 1		; Set stdin
+   307 00000119 488D3425[21000000]      	lea	rsi, [.inputc]	; Input address
+   308 00000121 BA01000000              	mov	rdx, 1		; characters to read
+   309 00000126 0F05                    	syscall
+   310 00000128 8A0425[21000000]        	mov	al, [.inputc]	; Input...
+   311 0000012F 3A0425[99040000]        	cmp	al, byte[NL]	; a newline?
+   312 00000136 7419                    	je	.done		; end of input
+   313 00000138 3C61                    	cmp	al, 97		; less than 'a'?
+   314 0000013A 7CD3                    	jl	.readc		; Yes, ignore it
+   315 0000013C 3C7A                    	cmp	al, 122		; Greater than 'z'?
+   316 0000013E 7FCF                    	jg	.readc		; Yes, ignore as well
+   317 00000140 49FFC6                  	inc	r14		; Increment 'valid' input count
+   318 00000143 4D39EE                  	cmp	r14, r13	; max input?
+   319 00000146 77C7                    	ja	.readc		; Ignore stuff that would overflow the buffer
+   320 00000148 41880424                	mov	byte [r12], al	; Save safe byte to buffer
+   321 0000014C 49FFC4                  	inc	r12		; point to next byte in buffer
+   322 0000014F EBBE                    	jmp	.readc		; get next character
+   323                                  .done:
+   324 00000151 49FFC4                  	inc	r12		; bump buffer pointer
+   325 00000154 41C6042400              	mov	byte [r12], 0	; zero terminate the buffer
+   326 00000159 415E                    	pop	r14		; restore registers
+   327 0000015B 415D                    	pop	r13
+   328 0000015D 415C                    	pop	r12
+   329 0000015F C9                      leave
+   330 00000160 C3                      ret
+   331                                  
