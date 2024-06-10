@@ -25,6 +25,7 @@ WRITEC	equ	1	; Write syscall
 NORMAL	equ	0	; Normal exit flag
 STDOUT	equ	1	; Standard output
 ADLEN	equ	8	; Address length in bytes
+BLEN	equ	1	; Address length in bytes
 ONEW	equ	0x0000000000000001
 ONEB	equ	0x0001
 ZEROW	equ	0x0000000000000000
@@ -62,8 +63,8 @@ ZEROB	equ	0x0000
 ; possible resolutions and a list of the start addres of each null
 ; terminated string.
 ;
-; Lookup calculation: addr+(((PLAYERGUESS*5)+COMPGUESS)*ADDRLEN)
-;		      verbadd+(((PLAYERGUESS*5)+COMPGUESS)*64)
+; Lookup calculation: addr+(((PLAYERGUESS*5)+COMPGUESS)*ADLEN)
+;		      verbadd+(((PLAYERGUESS*5)+COMPGUESS)*8)
 ; ************************************************************************
 ;			Rock
 	rck_rck	db	"matches",0		; Rock (Computer select)
@@ -113,8 +114,8 @@ ZEROB	equ	0x0000
 ; Also included is the result text and starting address for each null
 ; terminated string. 
 ;
-; Lookup calculation: resaddr+(((PLAYERGUESS*5)+COMPGUESS)*ADDRLEN)
-;		      outcome+(((PLAYERGUESS*5)+COMPGUESS)*8)
+; Lookup calculation: resaddr+(((PLAYERGUESS*5)+COMPGUESS)*BLEN)
+;		      outcome+(((PLAYERGUESS*5)+COMPGUESS)*1)
 ;*************************************************************************
 ;                        rck pap srs liz spk     byte int
 	outcome	db	 0, -1,  1,  1,  1	; Rock
@@ -169,16 +170,16 @@ ZEROB	equ	0x0000
 	CGUESS	equ	4
 	PGUESS	equ	1
 
-	NL	db	0xa	; newline
+	NL	db	0xa	; newline	
 	inlen	equ	32	; Max buffer length
 
 section	.bss
 
-	inbuf	resb	inlen+1	; add room for string and a null terminator
+	inbuf	resb	inlen+1	; room for string and a null terminator
 
 section	.text
 
-extern	printf		; We will be using the c library printf procedure
+extern	printf		; Use the c library printf procedure
 
 	global	main
 main:
@@ -300,7 +301,7 @@ section	.text
 	push	r14
 	mov	r12, rdi	; Address of input buffer
 	mov	r13, rsi	; Max length to r13
-	mov	r14, 0		; Character counter (this was mov r14, r14 which didn't work.)
+	xor	r14, r14	; Character counter
 .readc:
 	mov	rax, 0		; Read opcode
 	mov	rdi, 1		; Set stdin
