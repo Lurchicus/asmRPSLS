@@ -48,12 +48,13 @@ ZEROB	equ	0x0000
 	pscor	db	"score",0		; 7 (score request)
 	pdbug	db	"debug",0		; 8 (debug mode)
 	pquit	db	"quit",0		; 9 (quit request)
-	pend 	equ	$			; list end address
+	pend 	db	"end",0			; list end address
 
 	verbnum	db	0, 1, 2, 3, 4, 5, 6, 7, 8, 9
 
 	saddr	dq	$proxrck, $proxpap, $proxsrs, $proxliz, $proxspk
-		dq	$phelp, $plice, $pscor, $pdbug, $pquit, $pend
+		dq	$phelp, $plice, $pscor, $pdbug, $pquit
+	eaddr	dq	$pend
 
 ; ************************************************************************
 ; Action verb text
@@ -145,6 +146,7 @@ ZEROB	equ	0x0000
 
 ; Generic string
 	sto	db	"%s",0
+	stonl	db	"%s",10,0
 	nlst	db	"Input string was: %s",10,0
 
 ; ************************************************************************
@@ -207,8 +209,6 @@ help:
 
 ; Show prompt
 prompt:
-; Prompt doesn't seem to want to work with printf so I will try it with a
-; stdout syscall... it worked!
 	mov	rax, WRITEC	; Write
 	mov	rdi, STDOUT	; Standard out
  	mov	rsi, prompts	; Player prompt
@@ -223,13 +223,27 @@ prompt:
 ; for now, echo input and exit
 	mov	rax, NOFLOAT
 	mov	rdi, nlst
-;	lea	rsi, [inbuf]	; Didn't help
 	mov	rsi, inbuf
 	call	printf
 
-	jmp	end		; For now
-
 ; Convert input to numeric offset (0-4, 5-9) (proxies and commands)
+
+; This starts with traversing the command address table (starts
+; at saddr). 
+; For now just output the strings the addresses point to.
+	mov	rdx, saddr	; Address of command address table
+shocmd:	mov	rax, NOFLOAT	; Ascii'ish data
+	mov	rdi, stonl	; Output format
+	mov	rsi, [rdx]	; Command string
+	push	rdx		; Save rdx contents
+	call	printf		; Output the string
+	pop	rdx		; Restore rdx
+	add	rdx, 8		; Bump to the next 64bit address
+	cmp	rdx, eaddr	; This the end of the address table?
+	je	endit		; Yes, finish
+	jmp	shocmd		; No, get the next command string
+endit:	jmp	end		; For now
+
 ; Get random pick for computer
 ; Process commands if one is selected
 ;	5: Show help again (go to help)
