@@ -238,7 +238,7 @@ shocmd:	mov	rax, NOFLOAT	; Ascii'ish data
 	push	rdx		; Save rdx contents
 	call	printf		; Output the string
 	pop	rdx		; Restore rdx
-	add	rdx, 8		; Bump to the next 64bit address
+	add	rdx, ADLEN	; Bump to the next 64bit address
 	cmp	rdx, eaddr	; This the end of the address table?
 	je	endit		; Yes, finish
 	jmp	shocmd		; No, get the next command string

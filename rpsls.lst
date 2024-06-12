@@ -333,7 +333,7 @@
    238 000000A9 52                      	push	rdx		; Save rdx contents
    239 000000AA E8(00000000)            	call	printf		; Output the string
    240 000000AF 5A                      	pop	rdx		; Restore rdx
-   241 000000B0 4883C208                	add	rdx, 8		; Bump to the next address
+   241 000000B0 4883C208                	add	rdx, ADLEN	; Bump to the next 64bit address
    242 000000B4 4881FA[9D000000]        	cmp	rdx, eaddr	; This the end of the address table?
    243 000000BB 7402                    	je	endit		; Yes, finish
    244 000000BD EBD8                    	jmp	shocmd		; No, get the next command string
