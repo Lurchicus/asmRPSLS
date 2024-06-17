@@ -322,7 +322,7 @@
    232 0000005B 48BF-                   	mov	rdi, inbuf	; Input buffer
    232 0000005D [0000000000000000] 
    233 00000065 BE20000000              	mov	rsi, inlen	; Buffer length
-   234 0000006A E8B7000000              	call	reads
+   234 0000006A E8B5000000              	call	reads
    235                                  
    236                                  ; for now, echo input and exit
    237 0000006F B800000000              	mov	rax, NOFLOAT
@@ -350,7 +350,7 @@
    255 000000B4 4881FA[9D000000]        	cmp	rdx, eaddr	; This the end of the address table?
    256 000000BB 7402                    	je	endit		; Yes, finish
    257 000000BD EBD8                    	jmp	shocmd		; No, get the next command string
-   258 000000BF EB37                    endit:	jmp	end		; For now
+   258 000000BF EB35                    endit:	jmp	end		; For now
    259                                  
    260                                  ; Get random pick for computer
    261                                  ; Process commands if one is selected
@@ -363,44 +363,43 @@
    268                                  ;	8: Toggle debug (verbose info)
    269                                  debug:
    270 000000C6 50                      	push	rax		; Save the rax register
-   271 000000C7 48B8-                   	mov	rax, debugf	; Get the current debug flag setting
-   271 000000C9 [2803000000000000] 
-   272 000000D1 4883F801                	cmp 	rax, ONE	; Is it a one
-   273 000000D5 7407                    	jz	seton		; No, go toggle on
-   274 000000D7 B800000000              	mov	rax, ZERO	; Yes, toggle off
-   275 000000DC EB05                    	jmp	skipon		; Branch past the on toggle
+   271 000000C7 488B0425[28030000]      	mov	rax, [debugf]	; Get the current debug flag setting
+   272 000000CF 4883F801                	cmp 	rax, ONE	; Is it a one
+   273 000000D3 7407                    	jz	seton		; No, go toggle on
+   274 000000D5 B800000000              	mov	rax, ZERO	; Yes, toggle off
+   275 000000DA EB05                    	jmp	skipon		; Branch past the on toggle
    276                                  seton:
-   277 000000DE B801000000              	mov	rax, ONE	; Set toggle to on
+   277 000000DC B801000000              	mov	rax, ONE	; Set toggle to on
    278                                  skipon:
-   279 000000E3 48890425[28030000]      	mov	[debugf], rax	; Save new toggle value
-   280 000000EB 58                      	pop	rax		; Restore the rax register
-   281 000000EC E94FFFFFFF              	jmp	prompt		; reprompt
+   279 000000E1 48890425[28030000]      	mov	[debugf], rax	; Save new toggle value
+   280 000000E9 58                      	pop	rax		; Restore the rax register
+   281 000000EA E951FFFFFF              	jmp	prompt		; reprompt
    282                                  
    283                                  ;	9: Quit (show score and quit)
    284                                  quit:
    285                                  	; show score then exit
-   286 000000F1 EB05                    	jmp	end
+   286 000000EF EB05                    	jmp	end
    287                                  ;	0-4: Determine outcome based on proxies
    288                                  ; update scores
    289                                  ; Output round resuts
    290                                  ; Update round
    291                                  ; Go to prompt
-   292 000000F3 E948FFFFFF              	jmp	prompt		; reprompt
+   292 000000F1 E94AFFFFFF              	jmp	prompt		; reprompt
    293                                  
    294                                  end:
-   295 000000F8 B800000000              	mov	rax, NOFLOAT
-   296 000000FD 48BF-                   	mov	rdi, sto
-   296 000000FF [3003000000000000] 
-   297 00000107 48BE-                   	mov	rsi, bye
-   297 00000109 [BE04000000000000] 
-   298 00000111 E8(00000000)            	call	printf
+   295 000000F6 B800000000              	mov	rax, NOFLOAT
+   296 000000FB 48BF-                   	mov	rdi, sto
+   296 000000FD [3003000000000000] 
+   297 00000105 48BE-                   	mov	rsi, bye
+   297 00000107 [BE04000000000000] 
+   298 0000010F E8(00000000)            	call	printf
    299                                  
-   300 00000116 4889EC                  	mov	rsp, rbp	; epilogue
-   301 00000119 5D                      	pop	rbp
+   300 00000114 4889EC                  	mov	rsp, rbp	; epilogue
+   301 00000117 5D                      	pop	rbp
    302                                  
-   303 0000011A B83C000000              	mov	rax, XITCMD	; exit
-   304 0000011F BF00000000              	mov	rdi, NORMAL	; normal exit
-   305 00000124 0F05                    	syscall
+   303 00000118 B83C000000              	mov	rax, XITCMD	; exit
+   304 0000011D BF00000000              	mov	rdi, NORMAL	; normal exit
+   305 00000122 0F05                    	syscall
    306                                  
    307                                  ; *********************************************************************
    308                                  ; * reads ("safe" string reader), from                                *
@@ -418,39 +417,39 @@
    320                                  
    321                                  section	.text
    322                                  
-   323 00000126 55                      	push	rbp
-   324 00000127 4889E5                  	mov	rbp, rsp
-   325 0000012A 4154                    	push	r12		; save registers for argument use
-   326 0000012C 4155                    	push	r13
-   327 0000012E 4156                    	push	r14
-   328 00000130 4989FC                  	mov	r12, rdi	; Address of input buffer
-   329 00000133 4989F5                  	mov	r13, rsi	; Max length to r13
-   330 00000136 4D31F6                  	xor	r14, r14	; Character counter
+   323 00000124 55                      	push	rbp
+   324 00000125 4889E5                  	mov	rbp, rsp
+   325 00000128 4154                    	push	r12		; save registers for argument use
+   326 0000012A 4155                    	push	r13
+   327 0000012C 4156                    	push	r14
+   328 0000012E 4989FC                  	mov	r12, rdi	; Address of input buffer
+   329 00000131 4989F5                  	mov	r13, rsi	; Max length to r13
+   330 00000134 4D31F6                  	xor	r14, r14	; Character counter
    331                                  .readc:
-   332 00000139 B800000000              	mov	rax, 0		; Read opcode
-   333 0000013E BF01000000              	mov	rdi, 1		; Set stdin
-   334 00000143 488D3425[21000000]      	lea	rsi, [.inputc]	; Input address
-   335 0000014B BA01000000              	mov	rdx, 1		; characters to read
-   336 00000150 0F05                    	syscall
-   337 00000152 8A0425[21000000]        	mov	al, [.inputc]	; Input...
-   338 00000159 3A0425[0B050000]        	cmp	al, byte[NL]	; a newline?
-   339 00000160 7419                    	je	.done		; end of input
-   340 00000162 3C61                    	cmp	al, 97		; less than 'a'?
-   341 00000164 7CD3                    	jl	.readc		; Yes, ignore it
-   342 00000166 3C7A                    	cmp	al, 122		; Greater than 'z'?
-   343 00000168 7FCF                    	jg	.readc		; Yes, ignore as well
-   344 0000016A 49FFC6                  	inc	r14		; Increment 'valid' input count
-   345 0000016D 4D39EE                  	cmp	r14, r13	; max input?
-   346 00000170 77C7                    	ja	.readc		; Ignore stuff that would overflow the buffer
-   347 00000172 41880424                	mov	byte [r12], al	; Save safe byte to buffer
-   348 00000176 49FFC4                  	inc	r12		; point to next byte in buffer
-   349 00000179 EBBE                    	jmp	.readc		; get next character
+   332 00000137 B800000000              	mov	rax, 0		; Read opcode
+   333 0000013C BF01000000              	mov	rdi, 1		; Set stdin
+   334 00000141 488D3425[21000000]      	lea	rsi, [.inputc]	; Input address
+   335 00000149 BA01000000              	mov	rdx, 1		; characters to read
+   336 0000014E 0F05                    	syscall
+   337 00000150 8A0425[21000000]        	mov	al, [.inputc]	; Input...
+   338 00000157 3A0425[0B050000]        	cmp	al, byte[NL]	; a newline?
+   339 0000015E 7419                    	je	.done		; end of input
+   340 00000160 3C61                    	cmp	al, 97		; less than 'a'?
+   341 00000162 7CD3                    	jl	.readc		; Yes, ignore it
+   342 00000164 3C7A                    	cmp	al, 122		; Greater than 'z'?
+   343 00000166 7FCF                    	jg	.readc		; Yes, ignore as well
+   344 00000168 49FFC6                  	inc	r14		; Increment 'valid' input count
+   345 0000016B 4D39EE                  	cmp	r14, r13	; max input?
+   346 0000016E 77C7                    	ja	.readc		; Ignore stuff that would overflow the buffer
+   347 00000170 41880424                	mov	byte [r12], al	; Save safe byte to buffer
+   348 00000174 49FFC4                  	inc	r12		; point to next byte in buffer
+   349 00000177 EBBE                    	jmp	.readc		; get next character
    350                                  .done:
-   351 0000017B 49FFC4                  	inc	r12		; bump buffer pointer
-   352 0000017E 41C6042400              	mov	byte [r12], 0	; zero terminate the buffer
-   353 00000183 415E                    	pop	r14		; restore registers
-   354 00000185 415D                    	pop	r13
-   355 00000187 415C                    	pop	r12
-   356 00000189 C9                      leave
-   357 0000018A C3                      ret
+   351 00000179 49FFC4                  	inc	r12		; bump buffer pointer
+   352 0000017C 41C6042400              	mov	byte [r12], 0	; zero terminate the buffer
+   353 00000181 415E                    	pop	r14		; restore registers
+   354 00000183 415D                    	pop	r13
+   355 00000185 415C                    	pop	r12
+   356 00000187 C9                      leave
+   357 00000188 C3                      ret
    358                                  

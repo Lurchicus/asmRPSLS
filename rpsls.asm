@@ -268,7 +268,7 @@ dohelp:
 ;	8: Toggle debug (verbose info)
 debug:
 	push	rax		; Save the rax register
-	mov	rax, debugf	; Get the current debug flag setting
+	mov	rax, [debugf]	; Get the current debug flag setting
 	cmp 	rax, ONE	; Is it a one
 	jz	seton		; No, go toggle on
 	mov	rax, ZERO	; Yes, toggle off
