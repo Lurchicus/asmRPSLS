@@ -21,4 +21,5 @@ also added a lot of comment blocks as the data structures needed a better explan
 that assembly code isn't really self documenting. 
 - 06/12/2024 DWR Added code to traverse the proxy/command address table. I have it simply printing out
 the command strings for now, but this is the start of code to compare the user input to the command
-list to determine if the command is valid. 
+list to determine if the command is in the proxy/command list.
+- 06/17/2024 DWR Adding VT100 color codes (escape codes) to text output. 

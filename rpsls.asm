@@ -26,10 +26,8 @@ NORMAL	equ	0	; Normal exit flag
 STDOUT	equ	1	; Standard output
 ADLEN	equ	8	; Address length in bytes
 BLEN	equ	1	; Address length in bytes
-ONEW	equ	0x0000000000000001
-ONEB	equ	0x0001
-ZEROW	equ	0x0000000000000000
-ZEROB	equ	0x0000
+ONE	equ	1	; One constant
+ZERO 	equ	0	; Zero constant
 
 ; ************************************************************************
 ; Command strings (proxies)
@@ -146,26 +144,40 @@ ZEROB	equ	0x0000
 
 ; Generic string
 	sto	db	"%s",0
-	stonl	db	"%s",10,0
-	nlst	db	"Input string was: %s",10,0
+	stonl	db	0x1b,"[1;32m"
+		db	"%s",10,0
+	nlst	db	0x1b,"[1;34m"
+		db	"Input string was: "
+		db	0x1b,"[1;37m","%s",10,0
+
+					; VT escape code: 
+	ltWhite	db	0x1b,"[1;37m"	; Light white
+	ltYellow db	0x1b,"[1;33m" 	; Light yellow
+	ltBlue	db	0x1b,"[1;34m"	; Light blue
+	ltGreen	db	0x1b,"[1;32m"	; Light green
 
 ; ************************************************************************
 ; Splash screen, help screen and prompt text  
 ; ************************************************************************
-	splashs	db	"RPSLS v1.0 a Rock, Paper, Scissors, Lizard, "
+	splashs	db	0x1b,"[1;34m" 
+		db	"RPSLS v1.0 a Rock, Paper, Scissors, Lizard, "
 		db	"Spock game by Dan Rhea, 2024",10
 		db	"as designed by Sam Kass and Karen Bryla. "
 		db	"Licensed under the MIT License.",10,10,0
 ; Help
-	helps	db	"Enter 'rock' 'paper' 'scissors' 'lizard' or "
+	helps	db	0x1b,"[1;34m"
+		db	"Enter 'rock' 'paper' 'scissors' 'lizard' or "
 		db	"'spock' to play a round or",10
 		db	"the commands 'help' 'license' 'score' 'debug' "
 		db	"or 'quit'.",10,10,0
 ; Prompt
-	prompts	db	"rpsls: ",0
+	prompts	db	0x1b,"[1;33m"
+		db	"rpsls: "
+		db	0x1b,"[1;37m"
 	plen	equ	$-prompts
 ; Goodbye
-	bye	db	"Done! Thanks for playing.",10,0
+	bye	db	0x1b,"[1;37m"
+		db	"Done! Thanks for playing.",10,0
 
 	stest	db	"String: Player selected action verb:'%s'.",10,0
 
