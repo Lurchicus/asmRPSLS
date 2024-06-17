@@ -321,7 +321,7 @@
    231 0000005B 48BF-                   	mov	rdi, inbuf	; Input buffer
    231 0000005D [0000000000000000] 
    232 00000065 BE20000000              	mov	rsi, inlen	; Buffer length
-   233 0000006A E8BF000000              	call	reads
+   233 0000006A E8B7000000              	call	reads
    234                                  
    235                                  ; for now, echo input and exit
    236 0000006F B800000000              	mov	rax, NOFLOAT
@@ -349,7 +349,7 @@
    254 000000B4 4881FA[9D000000]        	cmp	rdx, eaddr	; This the end of the address table?
    255 000000BB 7402                    	je	endit		; Yes, finish
    256 000000BD EBD8                    	jmp	shocmd		; No, get the next command string
-   257 000000BF EB3F                    endit:	jmp	end		; For now
+   257 000000BF EB37                    endit:	jmp	end		; For now
    258                                  
    259                                  ; Get random pick for computer
    260                                  ; Process commands if one is selected
@@ -361,96 +361,95 @@
    266                                  ; 	7: Show current score
    267                                  ;	8: Toggle debug (verbose info)
    268                                  debug:
-   269 000000C6 50                      	push	rax
-   270 000000C7 48B8-                   	mov	rax, debugf
+   269 000000C6 50                      	push	rax		; Save the rax register
+   270 000000C7 48B8-                   	mov	rax, debugf	; Get the current debug flag setting
    270 000000C9 [2803000000000000] 
-   271 000000D1 4883E001                	and	rax, 0x0000000000000001
-   272 000000D5 740F                    	jz	seton
-   273 000000D7 B800000000              	mov	rax, 0x0000000000000000
-   274 000000DC 48890425[28030000]      	mov	[debugf], rax
-   275 000000E4 EB0D                    	jmp	setoff
-   276                                  seton:
-   277 000000E6 B801000000              	mov	rax, 0x0000000000000001
-   278 000000EB 48890425[28030000]      	mov	[debugf], rax
-   279                                  setoff:
-   280 000000F3 58                      	pop	rax
-   281 000000F4 E947FFFFFF              	jmp	prompt
-   282                                  
-   283                                  ;	9: Quit (show score and quit)
-   284                                  quit:
-   285                                  	; show score then exit
-   286 000000F9 EB05                    	jmp	end
-   287                                  ;	0-4: Determine outcome based on proxies
-   288                                  ; update scores
-   289                                  ; Output round resuts
-   290                                  ; Update round
-   291                                  ; Go to prompt
-   292 000000FB E940FFFFFF              	jmp	prompt		; reprompt
-   293                                  
-   294                                  end:
-   295 00000100 B800000000              	mov	rax, NOFLOAT
-   296 00000105 48BF-                   	mov	rdi, sto
-   296 00000107 [3003000000000000] 
-   297 0000010F 48BE-                   	mov	rsi, bye
-   297 00000111 [B704000000000000] 
-   298 00000119 E8(00000000)            	call	printf
-   299                                  
-   300 0000011E 4889EC                  	mov	rsp, rbp	; epilogue
-   301 00000121 5D                      	pop	rbp
-   302                                  
-   303 00000122 B83C000000              	mov	rax, XITCMD	; exit
-   304 00000127 BF00000000              	mov	rdi, NORMAL	; normal exit
-   305 0000012C 0F05                    	syscall
-   306                                  
-   307                                  ; *********************************************************************
-   308                                  ; * reads ("safe" string reader), from                                *
-   309                                  ; * Beginning x64 Assembly Programming by Jo Van Hoey (Pages 163-165) * 
-   310                                  ; * I have redone the comments to insure I understand what the        *
-   311                                  ; * procedure does and how it works.                                  *
-   312                                  ; *********************************************************************
-   313                                  reads:
-   314                                  
-   315                                  section	.data
-   316                                  
-   317                                  section	.bss
-   318                                  
-   319 00000021 ??                      	.inputc	resb	1	; Single character
-   320                                  
-   321                                  section	.text
-   322                                  
-   323 0000012E 55                      	push	rbp
-   324 0000012F 4889E5                  	mov	rbp, rsp
-   325 00000132 4154                    	push	r12		; save registers for argument use
-   326 00000134 4155                    	push	r13
-   327 00000136 4156                    	push	r14
-   328 00000138 4989FC                  	mov	r12, rdi	; Address of input buffer
-   329 0000013B 4989F5                  	mov	r13, rsi	; Max length to r13
-   330 0000013E 4D31F6                  	xor	r14, r14	; Character counter
-   331                                  .readc:
-   332 00000141 B800000000              	mov	rax, 0		; Read opcode
-   333 00000146 BF01000000              	mov	rdi, 1		; Set stdin
-   334 0000014B 488D3425[21000000]      	lea	rsi, [.inputc]	; Input address
-   335 00000153 BA01000000              	mov	rdx, 1		; characters to read
-   336 00000158 0F05                    	syscall
-   337 0000015A 8A0425[21000000]        	mov	al, [.inputc]	; Input...
-   338 00000161 3A0425[04050000]        	cmp	al, byte[NL]	; a newline?
-   339 00000168 7419                    	je	.done		; end of input
-   340 0000016A 3C61                    	cmp	al, 97		; less than 'a'?
-   341 0000016C 7CD3                    	jl	.readc		; Yes, ignore it
-   342 0000016E 3C7A                    	cmp	al, 122		; Greater than 'z'?
-   343 00000170 7FCF                    	jg	.readc		; Yes, ignore as well
-   344 00000172 49FFC6                  	inc	r14		; Increment 'valid' input count
-   345 00000175 4D39EE                  	cmp	r14, r13	; max input?
-   346 00000178 77C7                    	ja	.readc		; Ignore stuff that would overflow the buffer
-   347 0000017A 41880424                	mov	byte [r12], al	; Save safe byte to buffer
-   348 0000017E 49FFC4                  	inc	r12		; point to next byte in buffer
-   349 00000181 EBBE                    	jmp	.readc		; get next character
-   350                                  .done:
-   351 00000183 49FFC4                  	inc	r12		; bump buffer pointer
-   352 00000186 41C6042400              	mov	byte [r12], 0	; zero terminate the buffer
-   353 0000018B 415E                    	pop	r14		; restore registers
-   354 0000018D 415D                    	pop	r13
-   355 0000018F 415C                    	pop	r12
-   356 00000191 C9                      leave
-   357 00000192 C3                      ret
-   358                                  
+   271 000000D1 4883F801                	cmp 	rax, ONE	; Is it a one
+   272 000000D5 7407                    	jz	seton		; No, go toggle on
+   273 000000D7 B800000000              	mov	rax, ZERO	; Yes, toggle off
+   274 000000DC EB05                    	jmp	skipon		; Branch past the on toggle
+   275                                  seton:
+   276 000000DE B801000000              	mov	rax, ONE	; Set toggle to on
+   277                                  skipon:
+   278 000000E3 48890425[28030000]      	mov	[debugf], rax	; Save new toggle value
+   279 000000EB 58                      	pop	rax		; Restore the rax register
+   280 000000EC E94FFFFFFF              	jmp	prompt		; reprompt
+   281                                  
+   282                                  ;	9: Quit (show score and quit)
+   283                                  quit:
+   284                                  	; show score then exit
+   285 000000F1 EB05                    	jmp	end
+   286                                  ;	0-4: Determine outcome based on proxies
+   287                                  ; update scores
+   288                                  ; Output round resuts
+   289                                  ; Update round
+   290                                  ; Go to prompt
+   291 000000F3 E948FFFFFF              	jmp	prompt		; reprompt
+   292                                  
+   293                                  end:
+   294 000000F8 B800000000              	mov	rax, NOFLOAT
+   295 000000FD 48BF-                   	mov	rdi, sto
+   295 000000FF [3003000000000000] 
+   296 00000107 48BE-                   	mov	rsi, bye
+   296 00000109 [B704000000000000] 
+   297 00000111 E8(00000000)            	call	printf
+   298                                  
+   299 00000116 4889EC                  	mov	rsp, rbp	; epilogue
+   300 00000119 5D                      	pop	rbp
+   301                                  
+   302 0000011A B83C000000              	mov	rax, XITCMD	; exit
+   303 0000011F BF00000000              	mov	rdi, NORMAL	; normal exit
+   304 00000124 0F05                    	syscall
+   305                                  
+   306                                  ; *********************************************************************
+   307                                  ; * reads ("safe" string reader), from                                *
+   308                                  ; * Beginning x64 Assembly Programming by Jo Van Hoey (Pages 163-165) * 
+   309                                  ; * I have redone the comments to insure I understand what the        *
+   310                                  ; * procedure does and how it works.                                  *
+   311                                  ; *********************************************************************
+   312                                  reads:
+   313                                  
+   314                                  section	.data
+   315                                  
+   316                                  section	.bss
+   317                                  
+   318 00000021 ??                      	.inputc	resb	1	; Single character
+   319                                  
+   320                                  section	.text
+   321                                  
+   322 00000126 55                      	push	rbp
+   323 00000127 4889E5                  	mov	rbp, rsp
+   324 0000012A 4154                    	push	r12		; save registers for argument use
+   325 0000012C 4155                    	push	r13
+   326 0000012E 4156                    	push	r14
+   327 00000130 4989FC                  	mov	r12, rdi	; Address of input buffer
+   328 00000133 4989F5                  	mov	r13, rsi	; Max length to r13
+   329 00000136 4D31F6                  	xor	r14, r14	; Character counter
+   330                                  .readc:
+   331 00000139 B800000000              	mov	rax, 0		; Read opcode
+   332 0000013E BF01000000              	mov	rdi, 1		; Set stdin
+   333 00000143 488D3425[21000000]      	lea	rsi, [.inputc]	; Input address
+   334 0000014B BA01000000              	mov	rdx, 1		; characters to read
+   335 00000150 0F05                    	syscall
+   336 00000152 8A0425[21000000]        	mov	al, [.inputc]	; Input...
+   337 00000159 3A0425[04050000]        	cmp	al, byte[NL]	; a newline?
+   338 00000160 7419                    	je	.done		; end of input
+   339 00000162 3C61                    	cmp	al, 97		; less than 'a'?
+   340 00000164 7CD3                    	jl	.readc		; Yes, ignore it
+   341 00000166 3C7A                    	cmp	al, 122		; Greater than 'z'?
+   342 00000168 7FCF                    	jg	.readc		; Yes, ignore as well
+   343 0000016A 49FFC6                  	inc	r14		; Increment 'valid' input count
+   344 0000016D 4D39EE                  	cmp	r14, r13	; max input?
+   345 00000170 77C7                    	ja	.readc		; Ignore stuff that would overflow the buffer
+   346 00000172 41880424                	mov	byte [r12], al	; Save safe byte to buffer
+   347 00000176 49FFC4                  	inc	r12		; point to next byte in buffer
+   348 00000179 EBBE                    	jmp	.readc		; get next character
+   349                                  .done:
+   350 0000017B 49FFC4                  	inc	r12		; bump buffer pointer
+   351 0000017E 41C6042400              	mov	byte [r12], 0	; zero terminate the buffer
+   352 00000183 415E                    	pop	r14		; restore registers
+   353 00000185 415D                    	pop	r13
+   354 00000187 415C                    	pop	r12
+   355 00000189 C9                      leave
+   356 0000018A C3                      ret
+   357                                  

@@ -155,6 +155,7 @@ ZERO 	equ	0	; Zero constant
 	ltYellow db	0x1b,"[1;33m" 	; Light yellow
 	ltBlue	db	0x1b,"[1;34m"	; Light blue
 	ltGreen	db	0x1b,"[1;32m"	; Light green
+	red 	db	0x1b,"[0;31m"	; Red
 
 ; ************************************************************************
 ; Splash screen, help screen and prompt text  
@@ -266,19 +267,18 @@ dohelp:
 ; 	7: Show current score
 ;	8: Toggle debug (verbose info)
 debug:
-	push	rax
-	mov	rax, debugf
-	and	rax, 0x0000000000000001
-	jz	seton
-	mov	rax, 0x0000000000000000
-	mov	[debugf], rax
-	jmp	setoff
+	push	rax		; Save the rax register
+	mov	rax, debugf	; Get the current debug flag setting
+	cmp 	rax, ONE	; Is it a one
+	jz	seton		; No, go toggle on
+	mov	rax, ZERO	; Yes, toggle off
+	jmp	skipon		; Branch past the on toggle
 seton:
-	mov	rax, 0x0000000000000001
-	mov	[debugf], rax
-setoff:
-	pop	rax
-	jmp	prompt
+	mov	rax, ONE	; Set toggle to on
+skipon:
+	mov	[debugf], rax	; Save new toggle value
+	pop	rax		; Restore the rax register
+	jmp	prompt		; reprompt
 
 ;	9: Quit (show score and quit)
 quit:
