@@ -201,6 +201,9 @@ main:
 	push	rbp		; prologue
 	mov	rbp, rsp
 
+	mov	rax, ZERO	; Init debug toggle off
+	mov	[debugf], rax	; Save it
+
 	;mov	rax, NOFLOAT
 	;mov	rdi, stest
 	;mov	rsi, [verbadd+(((PGUESS*5)+CGUESS)*ADLEN)] 
@@ -270,12 +273,12 @@ debug:
 	push	rax		; Save the rax register
 	mov	rax, [debugf]	; Get the current debug flag setting
 	cmp 	rax, ONE	; Is it a one
-	jz	seton		; No, go toggle on
-	mov	rax, ZERO	; Yes, toggle off
-	jmp	skipon		; Branch past the on toggle
-seton:
-	mov	rax, ONE	; Set toggle to on
-skipon:
+	jz	skipoff		; No, go toggle on
+	mov	rax, ZERO	; Yes, set toggle off
+	jmp	savetg		; skip toggle on
+skipoff:
+	mov	rax, ONE	; Set toggle on
+savetg:	
 	mov	[debugf], rax	; Save new toggle value
 	pop	rax		; Restore the rax register
 	jmp	prompt		; reprompt

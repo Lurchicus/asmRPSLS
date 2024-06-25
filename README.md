@@ -10,6 +10,12 @@ wrote the program in c# for Windows and then ported it to Python3 to
 work with Windows and Linux.
 So now I want to port it to x86 assembly on Linux. Having fun so far! :)
 
+Currently in progress (todo)
+
+Working on code to take the user input in "inbuf" and compare it to the list starting at "proxrck" and given a match equate it with the value starting at verbnum. Basicly keep a counter and add a string compare of each string with the string the user supplied and retain the counter value as the user selection if a match is found (otherwise treat is as a "help" command) (I should be able to eliminate the verbnum list).
+
+Changes
+
 - 03/17/2024 DWR Project added to GitHub
 - 03/17/2024 DWR Corrected details text (doubled by)
 - 03/24/2024 DWR Added a safe text reader procedure
@@ -24,4 +30,4 @@ that assembly code isn't really self documenting.
 the command strings for now, but this is the start of code to compare the user input to the command
 list to determine if the command is in the proxy/command list.
 - 06/17/2024 DWR Adding VT100 color codes (escape codes) to text output and
-rewrote the debug toggle code (it was pretty bab before).
+rewrote the debug toggle code (it was pretty bad before).
