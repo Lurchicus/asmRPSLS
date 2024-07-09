@@ -137,6 +137,7 @@ ZERO 	equ	0	; Zero constant
 	cscore	dq	0	; Computer score
 	ties	dq	0	; Tie results
 	rounds	dq	0	; Round counter
+	rando	dq	0	; Computer selection 1-5
 	cmdnum	db	0	; Command number
 
 ; Flags
@@ -195,6 +196,9 @@ section	.bss
 section	.text
 
 extern	printf		; Use the c library printf procedure
+extern	rand 		; C random procedure
+extern	srand		; C init random procedure
+extern	time 		; C init time procedure
 
 	global	main
 main:
@@ -323,8 +327,8 @@ section	.bss
 
 section	.text
 
-	push	rbp
-	mov	rbp, rsp
+	push	rbp		; Save the program counter
+	mov	rbp, rsp	; Move the stack pointer to the program counter
 	push	r12		; save registers for argument use
 	push	r13
 	push	r14
@@ -359,3 +363,32 @@ section	.text
 leave
 ret
 
+; *********************************************************************
+; Get a random number of 1 to 5 (Computer guess)
+; *********************************************************************
+getrand:
+
+section .data	
+
+section	.bss
+
+section	.text
+
+	push	rbp		; Save the program counter
+	mov	rbp, rsp	; Move the stack pointer to the program counter
+	xor	rax, rax	; zero rax
+	mov	rcx, rax	; move rax to rcx
+	call	time 		; Get the current time (seed for random)
+	mov	rcx, rax	; Save rax to rcx again
+	call	srand 		; Seed random number procedure
+	call	rand		; call the random number procedure
+
+	; rand = (rand % 4) + 1
+	xor	rdx, rdx	; Clear rdx
+	mov	rcx, 4		; 0 to 4 +1 (I think)
+	div 	rcx		; Get the value
+	inc 	rdx 		; +1 for 1 through 5
+	mov	[rando], rdx	; Save it 
+
+leave
+ret 

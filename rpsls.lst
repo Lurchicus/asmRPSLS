@@ -188,271 +188,304 @@
    137 0000030F 0000000000000000        	cscore	dq	0	; Computer score
    138 00000317 0000000000000000        	ties	dq	0	; Tie results
    139 0000031F 0000000000000000        	rounds	dq	0	; Round counter
-   140 00000327 00                      	cmdnum	db	0	; Command number
-   141                                  
-   142                                  ; Flags
-   143 00000328 0000000000000000        	debugf	dq	0	; 0: no debug, 1: debug
-   144                                  
-   145                                  ; Generic string
-   146 00000330 257300                  	sto	db	"%s",0
-   147 00000333 1B5B313B33326D          	stonl	db	0x1b,"[1;32m"
-   148 0000033A 25730A00                		db	"%s",10,0
-   149 0000033E 1B5B313B33346D          	nlst	db	0x1b,"[1;34m"
-   150 00000345 496E70757420737472-     		db	"Input string was: "
-   150 0000034E 696E67207761733A20 
-   151 00000357 1B5B313B33376D2573-     		db	0x1b,"[1;37m","%s",10,0
-   151 00000360 0A00               
-   152                                  
-   153                                  					; VT escape code: 
-   154 00000362 1B5B313B33376D          	ltWhite	db	0x1b,"[1;37m"	; Light white
-   155 00000369 1B5B313B33336D          	ltYellow db	0x1b,"[1;33m" 	; Light yellow
-   156 00000370 1B5B313B33346D          	ltBlue	db	0x1b,"[1;34m"	; Light blue
-   157 00000377 1B5B313B33326D          	ltGreen	db	0x1b,"[1;32m"	; Light green
-   158 0000037E 1B5B303B33316D          	red 	db	0x1b,"[0;31m"	; Red
-   159                                  
-   160                                  ; ************************************************************************
-   161                                  ; Splash screen, help screen and prompt text  
-   162                                  ; ************************************************************************
-   163 00000385 1B5B313B33346D          	splashs	db	0x1b,"[1;34m" 
-   164 0000038C 5250534C532076312E-     		db	"RPSLS v1.0 a Rock, Paper, Scissors, Lizard, "
-   164 00000395 30206120526F636B2C-
-   164 0000039E 2050617065722C2053-
-   164 000003A7 636973736F72732C20-
-   164 000003B0 4C697A6172642C20   
-   165 000003B8 53706F636B2067616D-     		db	"Spock game by Dan Rhea, 2024",10
-   165 000003C1 652062792044616E20-
-   165 000003CA 526865612C20323032-
-   165 000003D3 340A               
-   166 000003D5 61732064657369676E-     		db	"as designed by Sam Kass and Karen Bryla. "
-   166 000003DE 65642062792053616D-
-   166 000003E7 204B61737320616E64-
-   166 000003F0 204B6172656E204272-
-   166 000003F9 796C612E20         
-   167 000003FE 4C6963656E73656420-     		db	"Licensed under the MIT License.",10,10,0
-   167 00000407 756E64657220746865-
-   167 00000410 204D4954204C696365-
-   167 00000419 6E73652E0A0A00     
-   168                                  ; Help
-   169 00000420 1B5B313B33346D          	helps	db	0x1b,"[1;34m"
-   170 00000427 456E7465722027726F-     		db	"Enter 'rock' 'paper' 'scissors' 'lizard' or "
-   170 00000430 636B27202770617065-
-   170 00000439 722720277363697373-
-   170 00000442 6F72732720276C697A-
-   170 0000044B 61726427206F7220   
-   171 00000453 2773706F636B272074-     		db	"'spock' to play a round or",10
-   171 0000045C 6F20706C6179206120-
-   171 00000465 726F756E64206F720A 
-   172 0000046E 74686520636F6D6D61-     		db	"the commands 'help' 'license' 'score' 'debug' "
-   172 00000477 6E6473202768656C70-
-   172 00000480 2720276C6963656E73-
-   172 00000489 6527202773636F7265-
-   172 00000492 272027646562756727-
-   172 0000049B 20                 
-   173 0000049C 6F7220277175697427-     		db	"or 'quit'.",10,10,0
-   173 000004A5 2E0A0A00           
-   174                                  ; Prompt
-   175 000004A9 1B5B313B33336D          	prompts	db	0x1b,"[1;33m"
-   176 000004B0 7270736C733A20          		db	"rpsls: "
-   177 000004B7 1B5B313B33376D          		db	0x1b,"[1;37m"
-   178                                  	plen	equ	$-prompts
-   179                                  ; Goodbye
-   180 000004BE 1B5B313B33376D          	bye	db	0x1b,"[1;37m"
-   181 000004C5 446F6E652120546861-     		db	"Done! Thanks for playing.",10,0
-   181 000004CE 6E6B7320666F722070-
-   181 000004D7 6C6179696E672E0A00 
-   182                                  
-   183 000004E0 537472696E673A2050-     	stest	db	"String: Player selected action verb:'%s'.",10,0
-   183 000004E9 6C617965722073656C-
-   183 000004F2 656374656420616374-
-   183 000004FB 696F6E20766572623A-
-   183 00000504 272573272E0A00     
-   184                                  
-   185                                  	CGUESS	equ	4
-   186                                  	PGUESS	equ	1
-   187                                  
-   188 0000050B 0A                      	NL	db	0xa	; newline	
-   189                                  	inlen	equ	32	; Max buffer length
-   190                                  
-   191                                  section	.bss
-   192                                  
-   193 00000000 <res 21h>               	inbuf	resb	inlen+1	; room for string and a null terminator
-   194                                  
-   195                                  section	.text
-   196                                  
-   197                                  extern	printf		; Use the c library printf procedure
-   198                                  
-   199                                  	global	main
-   200                                  main:
-   201 00000000 55                      	push	rbp		; prologue
-   202 00000001 4889E5                  	mov	rbp, rsp
-   203                                  
-   204 00000004 B800000000              	mov	rax, ZERO	; Init debug toggle off
-   205 00000009 48890425[28030000]      	mov	[debugf], rax	; Save it
-   206                                  
-   207                                  	;mov	rax, NOFLOAT
-   208                                  	;mov	rdi, stest
-   209                                  	;mov	rsi, [verbadd+(((PGUESS*5)+CGUESS)*ADLEN)] 
-   210                                  	;call	printf
-   211                                  
-   212                                  ; Show splash
-   213                                  splash:
-   214 00000011 B800000000              	mov	rax, NOFLOAT	; non-float output
-   215 00000016 48BF-                   	mov	rdi, sto	; string format (%s)
-   215 00000018 [3003000000000000] 
-   216 00000020 48BE-                   	mov	rsi, splashs	; text to output
-   216 00000022 [8503000000000000] 
-   217 0000002A E8(00000000)            	call	printf
-   218                                  
-   219                                  ; Show help (basic commands)
-   220                                  help:
-   221 0000002F B800000000              	mov	rax, NOFLOAT
-   222 00000034 48BF-                   	mov	rdi, sto
-   222 00000036 [3003000000000000] 
-   223 0000003E 48BE-                   	mov	rsi, helps
-   223 00000040 [2004000000000000] 
-   224 00000048 E8(00000000)            	call	printf
-   225                                  
-   226                                  ; Show prompt
-   227                                  prompt:
-   228 0000004D B801000000              	mov	rax, WRITEC	; Write
-   229 00000052 BF01000000              	mov	rdi, STDOUT	; Standard out
-   230 00000057 48BE-                    	mov	rsi, prompts	; Player prompt
-   230 00000059 [A904000000000000] 
-   231 00000061 BA15000000              	mov	rdx, plen	; Prompt length
-   232 00000066 0F05                    	syscall
-   233                                  
-   234                                  ; Get input from player
-   235 00000068 48BF-                   	mov	rdi, inbuf	; Input buffer
-   235 0000006A [0000000000000000] 
-   236 00000072 BE20000000              	mov	rsi, inlen	; Buffer length
-   237 00000077 E8B5000000              	call	reads
-   238                                  
-   239                                  ; for now, echo input and exit
-   240 0000007C B800000000              	mov	rax, NOFLOAT
-   241 00000081 48BF-                   	mov	rdi, nlst
-   241 00000083 [3E03000000000000] 
-   242 0000008B 48BE-                   	mov	rsi, inbuf
-   242 0000008D [0000000000000000] 
-   243 00000095 E8(00000000)            	call	printf
-   244                                  
-   245                                  ; Convert input to numeric offset (0-4, 5-9) (proxies and commands)
-   246                                  
-   247                                  ; This starts with traversing the command address table (starts
-   248                                  ; at saddr). 
-   249                                  ; For now just output the strings the addresses point to.
-   250 0000009A 48BA-                   	mov	rdx, saddr	; Address of command address table
-   250 0000009C [4D00000000000000] 
-   251 000000A4 B800000000              shocmd:	mov	rax, NOFLOAT	; Ascii'ish data
-   252 000000A9 48BF-                   	mov	rdi, stonl	; Output format
-   252 000000AB [3303000000000000] 
-   253 000000B3 488B32                  	mov	rsi, [rdx]	; Command string
-   254 000000B6 52                      	push	rdx		; Save rdx contents
-   255 000000B7 E8(00000000)            	call	printf		; Output the string
-   256 000000BC 5A                      	pop	rdx		; Restore rdx
-   257 000000BD 4883C208                	add	rdx, ADLEN	; Bump to the next 64bit address
-   258 000000C1 4881FA[9D000000]        	cmp	rdx, eaddr	; This the end of the address table?
-   259 000000C8 7402                    	je	endit		; Yes, finish
-   260 000000CA EBD8                    	jmp	shocmd		; No, get the next command string
-   261 000000CC EB35                    endit:	jmp	end		; For now
-   262                                  
-   263                                  ; Get random pick for computer
-   264                                  ; Process commands if one is selected
-   265                                  ;	5: Show help again (go to help)
-   266                                  dohelp:
-   267 000000CE E95CFFFFFF              	jmp	help		; show help and reprompt
-   268                                  
-   269                                  ;	6: Show MIT license
-   270                                  ; 	7: Show current score
-   271                                  ;	8: Toggle debug (verbose info)
-   272                                  debug:
-   273 000000D3 50                      	push	rax		; Save the rax register
-   274 000000D4 488B0425[28030000]      	mov	rax, [debugf]	; Get the current debug flag setting
-   275 000000DC 4883F801                	cmp 	rax, ONE	; Is it a one
-   276 000000E0 7407                    	jz	skipoff		; No, go toggle on
-   277 000000E2 B800000000              	mov	rax, ZERO	; Yes, set toggle off
-   278 000000E7 EB05                    	jmp	savetg		; skip toggle on
-   279                                  skipoff:
-   280 000000E9 B801000000              	mov	rax, ONE	; Set toggle on
-   281                                  savetg:	
-   282 000000EE 48890425[28030000]      	mov	[debugf], rax	; Save new toggle value
-   283 000000F6 58                      	pop	rax		; Restore the rax register
-   284 000000F7 E951FFFFFF              	jmp	prompt		; reprompt
-   285                                  
-   286                                  ;	9: Quit (show score and quit)
-   287                                  quit:
-   288                                  	; show score then exit
-   289 000000FC EB05                    	jmp	end
-   290                                  ;	0-4: Determine outcome based on proxies
-   291                                  ; update scores
-   292                                  ; Output round resuts
-   293                                  ; Update round
-   294                                  ; Go to prompt
-   295 000000FE E94AFFFFFF              	jmp	prompt		; reprompt
-   296                                  
-   297                                  end:
-   298 00000103 B800000000              	mov	rax, NOFLOAT
-   299 00000108 48BF-                   	mov	rdi, sto
-   299 0000010A [3003000000000000] 
-   300 00000112 48BE-                   	mov	rsi, bye
-   300 00000114 [BE04000000000000] 
-   301 0000011C E8(00000000)            	call	printf
-   302                                  
-   303 00000121 4889EC                  	mov	rsp, rbp	; epilogue
-   304 00000124 5D                      	pop	rbp
-   305                                  
-   306 00000125 B83C000000              	mov	rax, XITCMD	; exit
-   307 0000012A BF00000000              	mov	rdi, NORMAL	; normal exit
-   308 0000012F 0F05                    	syscall
+   140 00000327 0000000000000000        	rando	dq	0	; Computer selection 1-5
+   141 0000032F 00                      	cmdnum	db	0	; Command number
+   142                                  
+   143                                  ; Flags
+   144 00000330 0000000000000000        	debugf	dq	0	; 0: no debug, 1: debug
+   145                                  
+   146                                  ; Generic string
+   147 00000338 257300                  	sto	db	"%s",0
+   148 0000033B 1B5B313B33326D          	stonl	db	0x1b,"[1;32m"
+   149 00000342 25730A00                		db	"%s",10,0
+   150 00000346 1B5B313B33346D          	nlst	db	0x1b,"[1;34m"
+   151 0000034D 496E70757420737472-     		db	"Input string was: "
+   151 00000356 696E67207761733A20 
+   152 0000035F 1B5B313B33376D2573-     		db	0x1b,"[1;37m","%s",10,0
+   152 00000368 0A00               
+   153                                  
+   154                                  					; VT escape code: 
+   155 0000036A 1B5B313B33376D          	ltWhite	db	0x1b,"[1;37m"	; Light white
+   156 00000371 1B5B313B33336D          	ltYellow db	0x1b,"[1;33m" 	; Light yellow
+   157 00000378 1B5B313B33346D          	ltBlue	db	0x1b,"[1;34m"	; Light blue
+   158 0000037F 1B5B313B33326D          	ltGreen	db	0x1b,"[1;32m"	; Light green
+   159 00000386 1B5B303B33316D          	red 	db	0x1b,"[0;31m"	; Red
+   160                                  
+   161                                  ; ************************************************************************
+   162                                  ; Splash screen, help screen and prompt text  
+   163                                  ; ************************************************************************
+   164 0000038D 1B5B313B33346D          	splashs	db	0x1b,"[1;34m" 
+   165 00000394 5250534C532076312E-     		db	"RPSLS v1.0 a Rock, Paper, Scissors, Lizard, "
+   165 0000039D 30206120526F636B2C-
+   165 000003A6 2050617065722C2053-
+   165 000003AF 636973736F72732C20-
+   165 000003B8 4C697A6172642C20   
+   166 000003C0 53706F636B2067616D-     		db	"Spock game by Dan Rhea, 2024",10
+   166 000003C9 652062792044616E20-
+   166 000003D2 526865612C20323032-
+   166 000003DB 340A               
+   167 000003DD 61732064657369676E-     		db	"as designed by Sam Kass and Karen Bryla. "
+   167 000003E6 65642062792053616D-
+   167 000003EF 204B61737320616E64-
+   167 000003F8 204B6172656E204272-
+   167 00000401 796C612E20         
+   168 00000406 4C6963656E73656420-     		db	"Licensed under the MIT License.",10,10,0
+   168 0000040F 756E64657220746865-
+   168 00000418 204D4954204C696365-
+   168 00000421 6E73652E0A0A00     
+   169                                  ; Help
+   170 00000428 1B5B313B33346D          	helps	db	0x1b,"[1;34m"
+   171 0000042F 456E7465722027726F-     		db	"Enter 'rock' 'paper' 'scissors' 'lizard' or "
+   171 00000438 636B27202770617065-
+   171 00000441 722720277363697373-
+   171 0000044A 6F72732720276C697A-
+   171 00000453 61726427206F7220   
+   172 0000045B 2773706F636B272074-     		db	"'spock' to play a round or",10
+   172 00000464 6F20706C6179206120-
+   172 0000046D 726F756E64206F720A 
+   173 00000476 74686520636F6D6D61-     		db	"the commands 'help' 'license' 'score' 'debug' "
+   173 0000047F 6E6473202768656C70-
+   173 00000488 2720276C6963656E73-
+   173 00000491 6527202773636F7265-
+   173 0000049A 272027646562756727-
+   173 000004A3 20                 
+   174 000004A4 6F7220277175697427-     		db	"or 'quit'.",10,10,0
+   174 000004AD 2E0A0A00           
+   175                                  ; Prompt
+   176 000004B1 1B5B313B33336D          	prompts	db	0x1b,"[1;33m"
+   177 000004B8 7270736C733A20          		db	"rpsls: "
+   178 000004BF 1B5B313B33376D          		db	0x1b,"[1;37m"
+   179                                  	plen	equ	$-prompts
+   180                                  ; Goodbye
+   181 000004C6 1B5B313B33376D          	bye	db	0x1b,"[1;37m"
+   182 000004CD 446F6E652120546861-     		db	"Done! Thanks for playing.",10,0
+   182 000004D6 6E6B7320666F722070-
+   182 000004DF 6C6179696E672E0A00 
+   183                                  
+   184 000004E8 537472696E673A2050-     	stest	db	"String: Player selected action verb:'%s'.",10,0
+   184 000004F1 6C617965722073656C-
+   184 000004FA 656374656420616374-
+   184 00000503 696F6E20766572623A-
+   184 0000050C 272573272E0A00     
+   185                                  
+   186                                  	CGUESS	equ	4
+   187                                  	PGUESS	equ	1
+   188                                  
+   189 00000513 0A                      	NL	db	0xa	; newline	
+   190                                  	inlen	equ	32	; Max buffer length
+   191                                  
+   192                                  section	.bss
+   193                                  
+   194 00000000 <res 21h>               	inbuf	resb	inlen+1	; room for string and a null terminator
+   195                                  
+   196                                  section	.text
+   197                                  
+   198                                  extern	printf		; Use the c library printf procedure
+   199                                  extern	rand 		; C random procedure
+   200                                  extern	srand		; C init random procedure
+   201                                  extern	time 		; C init time procedure
+   202                                  
+   203                                  	global	main
+   204                                  main:
+   205 00000000 55                      	push	rbp		; prologue
+   206 00000001 4889E5                  	mov	rbp, rsp
+   207                                  
+   208 00000004 B800000000              	mov	rax, ZERO	; Init debug toggle off
+   209 00000009 48890425[30030000]      	mov	[debugf], rax	; Save it
+   210                                  
+   211                                  	;mov	rax, NOFLOAT
+   212                                  	;mov	rdi, stest
+   213                                  	;mov	rsi, [verbadd+(((PGUESS*5)+CGUESS)*ADLEN)] 
+   214                                  	;call	printf
+   215                                  
+   216                                  ; Show splash
+   217                                  splash:
+   218 00000011 B800000000              	mov	rax, NOFLOAT	; non-float output
+   219 00000016 48BF-                   	mov	rdi, sto	; string format (%s)
+   219 00000018 [3803000000000000] 
+   220 00000020 48BE-                   	mov	rsi, splashs	; text to output
+   220 00000022 [8D03000000000000] 
+   221 0000002A E8(00000000)            	call	printf
+   222                                  
+   223                                  ; Show help (basic commands)
+   224                                  help:
+   225 0000002F B800000000              	mov	rax, NOFLOAT
+   226 00000034 48BF-                   	mov	rdi, sto
+   226 00000036 [3803000000000000] 
+   227 0000003E 48BE-                   	mov	rsi, helps
+   227 00000040 [2804000000000000] 
+   228 00000048 E8(00000000)            	call	printf
+   229                                  
+   230                                  ; Show prompt
+   231                                  prompt:
+   232 0000004D B801000000              	mov	rax, WRITEC	; Write
+   233 00000052 BF01000000              	mov	rdi, STDOUT	; Standard out
+   234 00000057 48BE-                    	mov	rsi, prompts	; Player prompt
+   234 00000059 [B104000000000000] 
+   235 00000061 BA15000000              	mov	rdx, plen	; Prompt length
+   236 00000066 0F05                    	syscall
+   237                                  
+   238                                  ; Get input from player
+   239 00000068 48BF-                   	mov	rdi, inbuf	; Input buffer
+   239 0000006A [0000000000000000] 
+   240 00000072 BE20000000              	mov	rsi, inlen	; Buffer length
+   241 00000077 E8B5000000              	call	reads
+   242                                  
+   243                                  ; for now, echo input and exit
+   244 0000007C B800000000              	mov	rax, NOFLOAT
+   245 00000081 48BF-                   	mov	rdi, nlst
+   245 00000083 [4603000000000000] 
+   246 0000008B 48BE-                   	mov	rsi, inbuf
+   246 0000008D [0000000000000000] 
+   247 00000095 E8(00000000)            	call	printf
+   248                                  
+   249                                  ; Convert input to numeric offset (0-4, 5-9) (proxies and commands)
+   250                                  
+   251                                  ; This starts with traversing the command address table (starts
+   252                                  ; at saddr). 
+   253                                  ; For now just output the strings the addresses point to.
+   254 0000009A 48BA-                   	mov	rdx, saddr	; Address of command address table
+   254 0000009C [4D00000000000000] 
+   255 000000A4 B800000000              shocmd:	mov	rax, NOFLOAT	; Ascii'ish data
+   256 000000A9 48BF-                   	mov	rdi, stonl	; Output format
+   256 000000AB [3B03000000000000] 
+   257 000000B3 488B32                  	mov	rsi, [rdx]	; Command string
+   258 000000B6 52                      	push	rdx		; Save rdx contents
+   259 000000B7 E8(00000000)            	call	printf		; Output the string
+   260 000000BC 5A                      	pop	rdx		; Restore rdx
+   261 000000BD 4883C208                	add	rdx, ADLEN	; Bump to the next 64bit address
+   262 000000C1 4881FA[9D000000]        	cmp	rdx, eaddr	; This the end of the address table?
+   263 000000C8 7402                    	je	endit		; Yes, finish
+   264 000000CA EBD8                    	jmp	shocmd		; No, get the next command string
+   265 000000CC EB35                    endit:	jmp	end		; For now
+   266                                  
+   267                                  ; Get random pick for computer
+   268                                  ; Process commands if one is selected
+   269                                  ;	5: Show help again (go to help)
+   270                                  dohelp:
+   271 000000CE E95CFFFFFF              	jmp	help		; show help and reprompt
+   272                                  
+   273                                  ;	6: Show MIT license
+   274                                  ; 	7: Show current score
+   275                                  ;	8: Toggle debug (verbose info)
+   276                                  debug:
+   277 000000D3 50                      	push	rax		; Save the rax register
+   278 000000D4 488B0425[30030000]      	mov	rax, [debugf]	; Get the current debug flag setting
+   279 000000DC 4883F801                	cmp 	rax, ONE	; Is it a one
+   280 000000E0 7407                    	jz	skipoff		; No, go toggle on
+   281 000000E2 B800000000              	mov	rax, ZERO	; Yes, set toggle off
+   282 000000E7 EB05                    	jmp	savetg		; skip toggle on
+   283                                  skipoff:
+   284 000000E9 B801000000              	mov	rax, ONE	; Set toggle on
+   285                                  savetg:	
+   286 000000EE 48890425[30030000]      	mov	[debugf], rax	; Save new toggle value
+   287 000000F6 58                      	pop	rax		; Restore the rax register
+   288 000000F7 E951FFFFFF              	jmp	prompt		; reprompt
+   289                                  
+   290                                  ;	9: Quit (show score and quit)
+   291                                  quit:
+   292                                  	; show score then exit
+   293 000000FC EB05                    	jmp	end
+   294                                  ;	0-4: Determine outcome based on proxies
+   295                                  ; update scores
+   296                                  ; Output round resuts
+   297                                  ; Update round
+   298                                  ; Go to prompt
+   299 000000FE E94AFFFFFF              	jmp	prompt		; reprompt
+   300                                  
+   301                                  end:
+   302 00000103 B800000000              	mov	rax, NOFLOAT
+   303 00000108 48BF-                   	mov	rdi, sto
+   303 0000010A [3803000000000000] 
+   304 00000112 48BE-                   	mov	rsi, bye
+   304 00000114 [C604000000000000] 
+   305 0000011C E8(00000000)            	call	printf
+   306                                  
+   307 00000121 4889EC                  	mov	rsp, rbp	; epilogue
+   308 00000124 5D                      	pop	rbp
    309                                  
-   310                                  ; *********************************************************************
-   311                                  ; * reads ("safe" string reader), from                                *
-   312                                  ; * Beginning x64 Assembly Programming by Jo Van Hoey (Pages 163-165) * 
-   313                                  ; * I have redone the comments to insure I understand what the        *
-   314                                  ; * procedure does and how it works.                                  *
-   315                                  ; *********************************************************************
-   316                                  reads:
-   317                                  
-   318                                  section	.data
-   319                                  
-   320                                  section	.bss
+   310 00000125 B83C000000              	mov	rax, XITCMD	; exit
+   311 0000012A BF00000000              	mov	rdi, NORMAL	; normal exit
+   312 0000012F 0F05                    	syscall
+   313                                  
+   314                                  ; *********************************************************************
+   315                                  ; * reads ("safe" string reader), from                                *
+   316                                  ; * Beginning x64 Assembly Programming by Jo Van Hoey (Pages 163-165) * 
+   317                                  ; * I have redone the comments to insure I understand what the        *
+   318                                  ; * procedure does and how it works.                                  *
+   319                                  ; *********************************************************************
+   320                                  reads:
    321                                  
-   322 00000021 ??                      	.inputc	resb	1	; Single character
+   322                                  section	.data
    323                                  
-   324                                  section	.text
+   324                                  section	.bss
    325                                  
-   326 00000131 55                      	push	rbp
-   327 00000132 4889E5                  	mov	rbp, rsp
-   328 00000135 4154                    	push	r12		; save registers for argument use
-   329 00000137 4155                    	push	r13
-   330 00000139 4156                    	push	r14
-   331 0000013B 4989FC                  	mov	r12, rdi	; Address of input buffer
-   332 0000013E 4989F5                  	mov	r13, rsi	; Max length to r13
-   333 00000141 4D31F6                  	xor	r14, r14	; Character counter
-   334                                  .readc:
-   335 00000144 B800000000              	mov	rax, 0		; Read opcode
-   336 00000149 BF01000000              	mov	rdi, 1		; Set stdin
-   337 0000014E 488D3425[21000000]      	lea	rsi, [.inputc]	; Input address
-   338 00000156 BA01000000              	mov	rdx, 1		; characters to read
-   339 0000015B 0F05                    	syscall
-   340 0000015D 8A0425[21000000]        	mov	al, [.inputc]	; Input...
-   341 00000164 3A0425[0B050000]        	cmp	al, byte[NL]	; a newline?
-   342 0000016B 7419                    	je	.done		; end of input
-   343 0000016D 3C61                    	cmp	al, 97		; less than 'a'?
-   344 0000016F 7CD3                    	jl	.readc		; Yes, ignore it
-   345 00000171 3C7A                    	cmp	al, 122		; Greater than 'z'?
-   346 00000173 7FCF                    	jg	.readc		; Yes, ignore as well
-   347 00000175 49FFC6                  	inc	r14		; Increment 'valid' input count
-   348 00000178 4D39EE                  	cmp	r14, r13	; max input?
-   349 0000017B 77C7                    	ja	.readc		; Ignore stuff that would overflow the buffer
-   350 0000017D 41880424                	mov	byte [r12], al	; Save safe byte to buffer
-   351 00000181 49FFC4                  	inc	r12		; point to next byte in buffer
-   352 00000184 EBBE                    	jmp	.readc		; get next character
-   353                                  .done:
-   354 00000186 49FFC4                  	inc	r12		; bump buffer pointer
-   355 00000189 41C6042400              	mov	byte [r12], 0	; zero terminate the buffer
-   356 0000018E 415E                    	pop	r14		; restore registers
-   357 00000190 415D                    	pop	r13
-   358 00000192 415C                    	pop	r12
-   359 00000194 C9                      leave
-   360 00000195 C3                      ret
-   361                                  
+   326 00000021 ??                      	.inputc	resb	1	; Single character
+   327                                  
+   328                                  section	.text
+   329                                  
+   330 00000131 55                      	push	rbp		; Save the program counter
+   331 00000132 4889E5                  	mov	rbp, rsp	; Move the stack pointer to the program counter
+   332 00000135 4154                    	push	r12		; save registers for argument use
+   333 00000137 4155                    	push	r13
+   334 00000139 4156                    	push	r14
+   335 0000013B 4989FC                  	mov	r12, rdi	; Address of input buffer
+   336 0000013E 4989F5                  	mov	r13, rsi	; Max length to r13
+   337 00000141 4D31F6                  	xor	r14, r14	; Character counter
+   338                                  .readc:
+   339 00000144 B800000000              	mov	rax, 0		; Read opcode
+   340 00000149 BF01000000              	mov	rdi, 1		; Set stdin
+   341 0000014E 488D3425[21000000]      	lea	rsi, [.inputc]	; Input address
+   342 00000156 BA01000000              	mov	rdx, 1		; characters to read
+   343 0000015B 0F05                    	syscall
+   344 0000015D 8A0425[21000000]        	mov	al, [.inputc]	; Input...
+   345 00000164 3A0425[13050000]        	cmp	al, byte[NL]	; a newline?
+   346 0000016B 7419                    	je	.done		; end of input
+   347 0000016D 3C61                    	cmp	al, 97		; less than 'a'?
+   348 0000016F 7CD3                    	jl	.readc		; Yes, ignore it
+   349 00000171 3C7A                    	cmp	al, 122		; Greater than 'z'?
+   350 00000173 7FCF                    	jg	.readc		; Yes, ignore as well
+   351 00000175 49FFC6                  	inc	r14		; Increment 'valid' input count
+   352 00000178 4D39EE                  	cmp	r14, r13	; max input?
+   353 0000017B 77C7                    	ja	.readc		; Ignore stuff that would overflow the buffer
+   354 0000017D 41880424                	mov	byte [r12], al	; Save safe byte to buffer
+   355 00000181 49FFC4                  	inc	r12		; point to next byte in buffer
+   356 00000184 EBBE                    	jmp	.readc		; get next character
+   357                                  .done:
+   358 00000186 49FFC4                  	inc	r12		; bump buffer pointer
+   359 00000189 41C6042400              	mov	byte [r12], 0	; zero terminate the buffer
+   360 0000018E 415E                    	pop	r14		; restore registers
+   361 00000190 415D                    	pop	r13
+   362 00000192 415C                    	pop	r12
+   363 00000194 C9                      leave
+   364 00000195 C3                      ret
+   365                                  
+   366                                  ; *********************************************************************
+   367                                  ; Get a random number of 1 to 5
+   368                                  ; *********************************************************************
+   369                                  getrand:
+   370                                  
+   371                                  section .data	
+   372                                  
+   373                                  section	.bss
+   374                                  
+   375                                  section	.text
+   376                                  
+   377 00000196 55                      	push	rbp		; Save the program counter
+   378 00000197 4889E5                  	mov	rbp, rsp	; Move the stack pointer to the program counter
+   379 0000019A 4831C0                  	xor	rax, rax	; zero rax
+   380 0000019D 4889C1                  	mov	rcx, rax	; move rax to rcx
+   381 000001A0 E8(00000000)            	call	time 		; Get the current time (seed for random)
+   382 000001A5 4889C1                  	mov	rcx, rax	; Save rax to rcx again
+   383 000001A8 E8(00000000)            	call	srand 		; Seed random number procedure
+   384 000001AD E8(00000000)            	call	rand		; call the random number procedure
+   385                                  
+   386                                  	; rand = (rand % 4) + 1
+   387 000001B2 4831D2                  	xor	rdx, rdx	; Clear rdx
+   388 000001B5 B904000000              	mov	rcx, 4		; 0 to 4 +1 (I think)
+   389 000001BA 48F7F1                  	div 	rcx		; Get the value
+   390 000001BD 48FFC2                  	inc 	rdx 		; +1 for 1 through 5
+   391 000001C0 48891425[27030000]      	mov	[rando], rdx	; Save it 
+   392                                  
+   393 000001C8 C9                      leave
+   394 000001C9 C3                      ret 

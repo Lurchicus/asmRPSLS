@@ -33,3 +33,5 @@ list to determine if the command is in the proxy/command list.
 rewrote the debug toggle code (it was pretty bad before).
 - 06/25/2024 DWR Added a CHANGES.md file and cleaned up the formattin in the README.md file. Also added
 an in progress note above.
+- 07/09/2024 DWR Adding a random number procedure to get a number from 1 to 5 
+(in progress).

@@ -3,6 +3,7 @@
 The various commit messages so far (yes, lots of room for improvment here... I'll work on it)
 the README.md file contains a better list.
 
+- Dan Rhea <dan.rhea@gmail.com> Tue Jul 9 14:28:00 2024 -0400
 - Dan Rhea <dan.rhea@gmail.com> Tue Jun 25 00:27:08 2024 -0400  
 Did some reformatting on the changes file to make it more readable.
 - Dan Rhea <dan.rhea@gmail.com> Tue Jun 25 00:13:16 2024 -0400  
