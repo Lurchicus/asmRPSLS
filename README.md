@@ -12,7 +12,7 @@ So now I want to port it to x86 assembly on Linux. Having fun so far! :)
 
 ## Currently in progress (todo)
 
-Working on code to take the user input in "inbuf" and compare it to the list starting at "proxrck" and given a match equate it with the value starting at verbnum. Basicly keep a counter and add a string compare of each string with the string the user supplied and retain the counter value as the user selection if a match is found (otherwise treat is as a "help" command) (I should be able to eliminate the verbnum list).
+Working on code to take the user input in "inbuf" and compare it to the list starting at "proxrck" and given a match equate it with the value starting at verbnum. Basically keep a counter and add a string compare of each string with the string the user supplied and retain the counter value as the user selection if a match is found (otherwise treat is as a "help" command) (I should be able to eliminate the verbnum list).
 
 ## Changes
 
@@ -31,7 +31,8 @@ the command strings for now, but this is the start of code to compare the user i
 list to determine if the command is in the proxy/command list.
 - 06/17/2024 DWR Adding VT100 color codes (escape codes) to text output and
 rewrote the debug toggle code (it was pretty bad before).
-- 06/25/2024 DWR Added a CHANGES.md file and cleaned up the formattin in the README.md file. Also added
+- 06/25/2024 DWR Added a CHANGES.md file and cleaned up the formatting in the README.md file. Also added
 an in progress note above.
-- 07/09/2024 DWR Adding a random number procedure to get a number from 1 to 5 
+- 07/09/2024 DWR Adding a random number procedure to get a number from 1 to 5.
 (in progress).
+- 07/12/2024 DWR Removed the .lst file from the remote repository and tweaked the random routine to yield 0-4.

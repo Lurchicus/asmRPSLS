@@ -461,7 +461,7 @@
    364 00000195 C3                      ret
    365                                  
    366                                  ; *********************************************************************
-   367                                  ; Get a random number of 1 to 5
+   367                                  ; Get a random number of 0 to 4 (Computer guess)
    368                                  ; *********************************************************************
    369                                  getrand:
    370                                  
@@ -484,8 +484,8 @@
    387 000001B2 4831D2                  	xor	rdx, rdx	; Clear rdx
    388 000001B5 B904000000              	mov	rcx, 4		; 0 to 4 +1 (I think)
    389 000001BA 48F7F1                  	div 	rcx		; Get the value
-   390 000001BD 48FFC2                  	inc 	rdx 		; +1 for 1 through 5
-   391 000001C0 48891425[27030000]      	mov	[rando], rdx	; Save it 
+   390                                  	;inc 	rdx 		; +1 for 1 through 5
+   391 000001BD 48891425[27030000]      	mov	[rando], rdx	; Save it 
    392                                  
-   393 000001C8 C9                      leave
-   394 000001C9 C3                      ret 
+   393 000001C5 C9                      leave
+   394 000001C6 C3                      ret 

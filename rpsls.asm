@@ -364,7 +364,7 @@ leave
 ret
 
 ; *********************************************************************
-; Get a random number of 1 to 5 (Computer guess)
+; Get a random number of 0 to 4 (Computer guess)
 ; *********************************************************************
 getrand:
 
@@ -387,7 +387,7 @@ section	.text
 	xor	rdx, rdx	; Clear rdx
 	mov	rcx, 4		; 0 to 4 +1 (I think)
 	div 	rcx		; Get the value
-	inc 	rdx 		; +1 for 1 through 5
+	;inc 	rdx 		; +1 for 1 through 5
 	mov	[rando], rdx	; Save it 
 
 leave
