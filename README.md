@@ -14,6 +14,14 @@ So now I want to port it to x86 assembly on Linux. Having fun so far! :)
 
 Working on code to take the user input in "inbuf" and compare it to the list starting at "proxrck" and given a match equate it with the value starting at verbnum. Basically keep a counter and add a string compare of each string with the string the user supplied and retain the counter value as the user selection if a match is found (otherwise treat is as a "help" command) (I should be able to eliminate the verbnum list).
 
+## Dependencies
+
+- gcc
+- build-essential
+- nasm
+
+
+
 ## Changes
 
 - 03/17/2024 DWR Project added to GitHub
