@@ -177,6 +177,10 @@ ZERO 	equ	0	; Zero constant
 		db	"rpsls: "
 		db	0x1b,"[1;37m"
 	plen	equ	$-prompts
+; Error
+	errmsg	db	0x1b,"[0;31m"
+		db	"I do not understand %s. Please try again."
+		db	0x1b,"[1;37m",10,0
 ; Goodbye
 	bye	db	0x1b,"[1;37m"
 		db	"Done! Thanks for playing.",10,0
@@ -219,7 +223,13 @@ splash:
 	mov	rdi, sto	; string format (%s)
 	mov	rsi, splashs	; text to output
 	call	printf
-
+	jmp	help;
+; Show error message
+error:
+	mov	rax, NOFLOAT
+	mov	rdi, errmsg
+	mov	rsi, inbuf
+	call	printf
 ; Show help (basic commands)
 help:
 	mov	rax, NOFLOAT
