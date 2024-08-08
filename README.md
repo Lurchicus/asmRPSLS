@@ -22,10 +22,10 @@ Working on code to take the user input in "inbuf" and compare it to the list sta
 
 ## C Library external references
 
-- extern	printf
-- extern	rand
-- extern	srand
-- extern	time
+- extern printf
+- extern rand
+- extern srand
+- extern time
 
 ## Changes
 
