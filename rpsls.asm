@@ -226,15 +226,15 @@ splash:
 	jmp	help;
 ; Show error message
 error:
-	mov	rax, NOFLOAT
-	mov	rdi, errmsg
-	mov	rsi, inbuf
+	mov	rax, NOFLOAT	; non-float output
+	mov	rdi, errmsg	; error message
+	mov	rsi, inbuf	; input buffer
 	call	printf
 ; Show help (basic commands)
 help:
-	mov	rax, NOFLOAT
-	mov	rdi, sto
-	mov	rsi, helps
+	mov	rax, NOFLOAT	; non-float output
+	mov	rdi, sto	; string format (%s)
+	mov	rsi, helps	; help text
 	call	printf
 
 ; Show prompt
@@ -309,13 +309,13 @@ quit:
 	jmp	prompt		; reprompt
 
 end:
-	mov	rax, NOFLOAT
-	mov	rdi, sto
-	mov	rsi, bye
+	mov	rax, NOFLOAT	; non-float output
+	mov	rdi, sto	; string format (%s)
+	mov	rsi, bye	; goodbye message
 	call	printf
 
-	mov	rsp, rbp	; epilogue
-	pop	rbp
+	mov	rsp, rbp	; epilogue. Reset the stack pointer
+	pop	rbp		; restore the program counter
 
 	mov	rax, XITCMD	; exit
 	mov	rdi, NORMAL	; normal exit
