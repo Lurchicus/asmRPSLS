@@ -147,6 +147,8 @@ ZERO 	equ	0	; Zero constant
 	sto	db	"%s",0
 	stonl	db	0x1b,"[1;32m"
 		db	"%s",10,0
+	numnl	db	0x1b,"[1;31m"
+		db	"%d",10,0	
 	nlst	db	0x1b,"[1;34m"
 		db	"Input string was: "
 		db	0x1b,"[1;37m","%s",10,0
@@ -249,6 +251,13 @@ prompt:
 	mov	rdi, inbuf	; Input buffer
 	mov	rsi, inlen	; Buffer length
 	call	reads
+
+; Get computer input and show it (random pick)
+	call	getrand	; Get a random number
+	mov rax, NOFLOAT	; non-float output
+	mov rdi, numnl	; number format (%d)
+	mov rsi, [rando]	; computer selection
+	call 	printf
 
 ; for now, echo input and exit
 	mov	rax, NOFLOAT
@@ -386,6 +395,11 @@ section	.text
 
 	push	rbp		; Save the program counter
 	mov	rbp, rsp	; Move the stack pointer to the program counter
+	; =======
+	mov rax, 2
+	mov [rando], rax
+	jmp .lret
+	; =======
 	xor	rax, rax	; zero rax
 	mov	rcx, rax	; move rax to rcx
 	call	time 		; Get the current time (seed for random)
@@ -400,5 +414,6 @@ section	.text
 	;inc 	rdx 		; +1 for 1 through 5
 	mov	[rando], rdx	; Save it 
 
+.lret:
 leave
 ret 
