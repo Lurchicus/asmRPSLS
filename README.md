@@ -49,3 +49,4 @@ an in progress note above.
 - 07/09/2024 DWR Adding a random number procedure to get a number from 1 to 5.
 (in progress).
 - 07/12/2024 DWR Removed the .lst file from the remote repository and tweaked the random routine to yield 0-4.
+- 12/07/2024 DWR Added code to debug 'getrand' as it has issues

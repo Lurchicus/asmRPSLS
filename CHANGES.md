@@ -3,6 +3,8 @@
 The various commit messages so far (yes, lots of room for improvment here... I'll work on it)
 the README.md file contains a better list.
 
+- Dan Rhea <dan.rhea@gmail.com> Sat Dec 7 11:52:26 2024 -0500
+Added code to debug 'getrand' as it has issues
 - Dan Rhea <dan.rhea@gmail.com> Tue Jul 9 14:28:00 2024 -0400
 Adding a random number procedure to get a number from 1 to 5
 - Dan Rhea <dan.rhea@gmail.com> Tue Jun 25 00:27:08 2024 -0400  
