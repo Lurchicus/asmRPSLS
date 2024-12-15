@@ -3,6 +3,8 @@
 The various commit messages so far (yes, lots of room for improvment here... I'll work on it)
 the README.md file contains a better list.
 
+- Dan Rhea <dan.rhea@gmail.com> Sun Dec 15 02:39:55 2024 -0500
+Added debug prints to the random routine
 - Dan Rhea <dan.rhea@gmail.com> Sat Dec 7 11:52:26 2024 -0500
 Added code to debug 'getrand' as it has issues
 - Dan Rhea <dan.rhea@gmail.com> Tue Jul 9 14:28:00 2024 -0400
