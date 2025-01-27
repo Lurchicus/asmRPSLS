@@ -1,6 +1,24 @@
 # History (git log)
 
 
+## Commit 37 
+| Item | Info | 
+| :--- | :--- |
+| Date | Sun Jan 26 19:43:42 2025 -0500 |
+| Author | Dan Rhea <dan.rhea@gmail.com> |
+| Message | Update changes file... again |
+| commit | 179b0f648c72b3513317a1ed388135396daeca2d |
+
+
+## Commit 36 
+| Item | Info | 
+| :--- | :--- |
+| Date | Sun Jan 26 19:39:00 2025 -0500 |
+| Author | Dan Rhea <dan.rhea@gmail.com> |
+| Message | Update changes file |
+| commit | 7f473afd98448ec29c87caa9252b56754856bfa9 |
+
+
 ## Commit 35 
 | Item | Info | 
 | :--- | :--- |
