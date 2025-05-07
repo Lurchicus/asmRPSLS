@@ -51,3 +51,4 @@ an in progress note above.
 - 07/12/2024 DWR Removed the .lst file from the remote repository and tweaked the random routine to yield 0-4.
 - 12/07/2024 DWR Added code to debug 'getrand' as it has issues
 - 12/15/2024 DWR Added debug prints to the random routine
+- 05/07/2025 DWR Continuing to work on random number sub. It works with debug code (printf) but segmentation faults without it.

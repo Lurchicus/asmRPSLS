@@ -26,7 +26,7 @@ NORMAL	equ	0	; Normal exit flag
 STDOUT	equ	1	; Standard output
 ADLEN	equ	8	; Address length in bytes
 BLEN	equ	1	; Address length in bytes
-ONE	equ	1	; One constant
+ONE		equ	1	; One constant
 ZERO 	equ	0	; Zero constant
 
 ; ************************************************************************
@@ -51,7 +51,7 @@ ZERO 	equ	0	; Zero constant
 	verbnum	db	0, 1, 2, 3, 4, 5, 6, 7, 8, 9
 
 	saddr	dq	$proxrck, $proxpap, $proxsrs, $proxliz, $proxspk
-		dq	$phelp, $plice, $pscor, $pdbug, $pquit
+			dq	$phelp, $plice, $pscor, $pdbug, $pquit
 	eaddr	dq	$pend
 
 ; ************************************************************************
@@ -65,45 +65,45 @@ ZERO 	equ	0	; Zero constant
 ; Lookup calculation: addr+(((PLAYERGUESS*5)+COMPGUESS)*ADLEN)
 ;		      verbadd+(((PLAYERGUESS*5)+COMPGUESS)*8)
 ; ************************************************************************
-;			Rock
-	rck_rck	db	"matches",0		; Rock (Computer select)
+;				Rock
+	rck_rck	db	"matches",0			; Rock (Computer select)
 	rck_pap	db	"is covered by",0	; Paper
-	rck_srs	db	"smashes",0		; Scissors
-	rck_liz	db	"crushes",0		; Lizard
+	rck_srs	db	"smashes",0			; Scissors
+	rck_liz	db	"crushes",0			; Lizard
 	rck_spk	db	"is vaporized by",0	; Spock
-;			Paper
-	pap_rck	db	"covers",0		; Rock
-	pap_pap	db	"matches",0		; Paper
+;				Paper
+	pap_rck	db	"covers",0			; Rock
+	pap_pap	db	"matches",0			; Paper
 	pap_srs	db	"is cut by",0		; Scissors
 	pap_liz	db	"is eaten by",0		; Lizard
 	pap_spk	db	"disproves",0		; Spock
-;			Scissors
+;				Scissors
 	srs_rck	db	"are broken by",0	; Rock
-	srs_pap	db	"cuts",0		; Paper
-	srs_srs	db	"matches",0		; Scissors
+	srs_pap	db	"cuts",0			; Paper
+	srs_srs	db	"matches",0			; Scissors
 	srs_liz	db	"decapitates",0		; Lizard
 	srs_spk	db	"are smashed by",0	; Spock
-;			Lizard
+;				Lizard
 	liz_rck	db	"is crushed by",0	; Rock
-	liz_pap db	"eats",0		; Paper
+	liz_pap db	"eats",0			; Paper
 	liz_srs	db	"is decapitated by",0	; Scissors
-	liz_liz	db	"matches",0		; Lizard
-	liz_spk	db	"poisons",0		; Spock
-;			Spock
+	liz_liz	db	"matches",0			; Lizard
+	liz_spk	db	"poisons",0			; Spock
+;				Spock
 	spk_rck	db	"vaporizes",0		; Rock
 	spk_pap	db	"is disproved by",0	; Paper
-	spk_srs	db	"smashes",0		; Scissors
+	spk_srs	db	"smashes",0			; Scissors
 	spk_liz	db	"is poisoned by",0	; Lizard
-	spk_spk	db	"matches",0		; Spock
-	;		End address
+	spk_spk	db	"matches",0			; Spock
+	;			End address
 	av_end	equ	$
 ; Array of verb addresses (proxy index * 5)
 	verbadd	dq	$rck_rck, $rck_pap, $rck_srs, $rck_liz, $rck_spk
-		dq	$pap_rck, $pap_pap, $pap_srs, $pap_liz, $pap_spk
-		dq	$srs_rck, $srs_pap, $srs_srs, $srs_liz,	$srs_spk
-		dq	$liz_rck, $liz_pap, $liz_srs, $liz_liz,	$liz_spk
-		dq	$spk_rck, $spk_pap, $spk_srs, $spk_liz, $spk_spk
-		dq	$av_end
+			dq	$pap_rck, $pap_pap, $pap_srs, $pap_liz, $pap_spk
+			dq	$srs_rck, $srs_pap, $srs_srs, $srs_liz,	$srs_spk
+			dq	$liz_rck, $liz_pap, $liz_srs, $liz_liz,	$liz_spk
+			dq	$spk_rck, $spk_pap, $spk_srs, $spk_liz, $spk_spk
+			dq	$av_end
 
 ; ************************************************************************
 ; Results map lookup table
@@ -117,12 +117,12 @@ ZERO 	equ	0	; Zero constant
 ;		      outcome+(((PLAYERGUESS*5)+COMPGUESS)*1)
 ;*************************************************************************
 ;                        rck pap srs liz spk     byte int
-	outcome	db	 0, -1,  1,  1,  1	; Rock
-		db	 1,  0, -1, -1,  1	; Paper
-		db	-1,  1,  0,  1, -1	; Scissors
-		db	-1,  1, -1,  0,  1	; Lizard
-		db	 1, -1,  1, -1,  0	; Spock
-;			1: Player win, -1: Computer win, 0: Tie
+				outcome	db	 0, -1,  1,  1,  1	; Rock
+					db	 1,  0, -1, -1,  1		; Paper
+					db	-1,  1,  0,  1, -1		; Scissors
+					db	-1,  1, -1,  0,  1		; Lizard
+					db	 1, -1,  1, -1,  0		; Spock
+;				1: Player win, -1: Computer win, 0: Tie
 	playwin	db	"Player wins over computer!",0	; 1
 	compwin	db	"Player loses to computer!",0	; -1
 	bothtie	db	"Player ties with computer!",0	; 0
