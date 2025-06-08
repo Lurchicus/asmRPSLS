@@ -213,115 +213,112 @@ extern		rand				; C random procedure
 extern		srand				; C init random procedure
 extern		time				; C init time procedure
 
-; Reformatting stopped here (14, 25, 41 [49]) [0, 17, 33, (49 | 57)]
-
 global		main
 main:
-		push	rbp						; prologue
-		mov		rbp, rsp
+		push		rbp		; prologue (save program counter)
+		mov		rbp, rsp	; Move stack pointer to program counter
 
-		mov		rax, ZERO				; Init debug toggle off
-		mov		[debugf], rax			; Save it
+		mov		rax, ZERO	; Init debug toggle off
+		mov		[debugf], rax	; Save it
 
-		;mov	rax, NOFLOAT
-		;mov	rdi, stest
-		;mov	rsi, [verbadd+(((PGUESS*5)+CGUESS)*ADLEN)] 
-		;call	printf
+		;mov		rax, NOFLOAT
+		;mov		rdi, stest
+		;mov		rsi, [verbadd+(((PGUESS*5)+CGUESS)*ADLEN)] 
+		;call		printf
 
 ; Show splash
 splash:
-		mov		rax, NOFLOAT			; non-float output
-		mov		rdi, sto				; string format (%s)
-		mov		rsi, splashs			; text to output
-		call	printf
+		mov		rax, NOFLOAT	; non-float output
+		mov		rdi, sto	; string format (%s)
+		mov		rsi, splashs	; text to output
+		call		printf
 		jmp		help;
 
 ; Show error message
 error:
-		mov		rax, NOFLOAT			; non-float output
-		mov		rdi, errmsg				; error message
-		mov		rsi, inbuf				; input buffer
-		call	printf
+		mov		rax, NOFLOAT	; non-float output
+		mov		rdi, errmsg	; error message
+		mov		rsi, inbuf	; input buffer
+		call		printf
 
 ; Show help (basic commands)
 help:
-		mov		rax, NOFLOAT			; non-float output
-		mov		rdi, sto				; string format (%s)
-		mov		rsi, helps				; help text
-		call	printf
+		mov		rax, NOFLOAT	; non-float output
+		mov		rdi, sto	; string format (%s)
+		mov		rsi, helps	; help text
+		call		printf
 
-; Show prompt
+; Show prompt (I couldn't gry printf to work for the prompt so syscall it is)
 prompt:	
-		mov		rax, WRITEC				; Write
-		mov		rdi, STDOUT				; Standard out
- 		mov		rsi, prompts			; Player prompt
-		mov		rdx, plen				; Prompt length
+		mov		rax, WRITEC	; Write
+		mov		rdi, STDOUT	; Standard out
+		mov		rsi, prompts	; Player prompt
+		mov		rdx, plen	; Prompt length
 		syscall
 
 ; ************************************************************************
 ; Get input from player
 ; ************************************************************************
-		mov		rdi, inbuf				; Input buffer
-		mov		rsi, inlen				; Buffer length
-		call	reads
+		mov		rdi, inbuf	; Input buffer
+		mov		rsi, inlen	; Buffer length
+		call		reads		; read string function
 
 ; Get computer input and show it (random pick)
-		call	getrand					; Get a random number
-		mov 	rax, NOFLOAT			; non-float output
-		mov 	rdi, numnl				; number format (%d)
-		mov 	rsi, [rando]			; computer selection
-		call 	printf
+		call		getrand		; Get a random number function
+		mov 		rax, NOFLOAT	; non-float output
+		mov 		rdi, numnl	; number format (%d)
+		mov 		rsi, [rando]	; computer selection
+		call 		printf		; Show the random number (0-4)
 
 ; for now, echo input and exit
-		mov		rax, NOFLOAT
-		mov		rdi, nlst
-		mov		rsi, inbuf
-		call	printf
+		mov		rax, NOFLOAT	; non-float output
+		mov		rdi, nlst	; format
+		mov		rsi, inbuf	; User alpha input
+		call		printf		; show it
 
 ; Convert input to numeric offset (0-4, 5-9) (proxies and commands)
 
 ; This starts with traversing the command address table (starts
 ; at saddr). 
 ; For now just output the strings the addresses point to.
-		mov		rdx, saddr				; Address of command address table
-shocmd:	mov		rax, NOFLOAT			; Ascii'ish data
-		mov		rdi, stonl				; Output format
-		mov		rsi, [rdx]				; Command string
-		push	rdx						; Save rdx contents
-		call	printf					; Output the string
-		pop		rdx						; Restore rdx
-		add		rdx, ADLEN				; Bump to the next 64bit address
-		cmp		rdx, eaddr				; This the end of the address table?
-		je		endit					; Yes, finish
-		jmp		shocmd					; No, get the next command string
-endit:	jmp		end						; For now
+		mov		rdx, saddr	; Address of command address table
+shocmd:
+		mov		rax, NOFLOAT	; Ascii'ish data
+		mov		rdi, stonl	; Output format
+		mov		rsi, [rdx]	; Command string
+		push		rdx		; Save rdx contents
+		call		printf		; Output the string
+		pop		rdx		; Restore rdx
+		add		rdx, ADLEN	; Bump to the next 64bit address
+		cmp		rdx, eaddr	; This the end of the address table?
+		je		endit		; Yes, finish
+		jmp		shocmd		; No, get the next command string
+endit:
+		jmp		end		; For now
 
-; Get random pick for computer
 ; Process commands if one is selected
-
+;
 ;	5: Show help again (go to help)
 dohelp:
-		jmp		help					; show help and reprompt
+		jmp		help		; show help and reprompt
 
-;	6: Show MIT license
+;	6: Show MIT license (file?)
 ; 	7: Show current score
 
 ;	8: Toggle debug (verbose info)
 debug:
-		push	rax						; Save the rax register
-		mov		rax, [debugf]			; Get the current debug flag setting
-		cmp 	rax, ONE				; Is it a one
-		jz		skipoff					; No, go toggle on
-		mov		rax, ZERO				; Yes, set toggle off
-		jmp		savetg					; skip toggle on
-
+		push		rax		; Save the rax register
+		mov		rax, [debugf]	; Get the current debug flag setting
+		cmp 		rax, ONE	; Is it a one
+		jz		skipoff		; No, go toggle on
+		mov		rax, ZERO	; Yes, set toggle off
+		jmp		savetg		; skip toggle on
 skipoff:
-		mov		rax, ONE				; Set toggle on
-
+		mov		rax, ONE	; Set toggle on
 savetg:	
-		mov		[debugf], rax			; Save new toggle value
-		pop		rax						; Restore the rax register
-		jmp		prompt					; reprompt
+		mov		[debugf], rax	; Save new toggle value
+		pop		rax		; Restore the rax register
+		jmp		prompt		; reprompt
 
 ;	9: Quit (show score and quit)
 quit:
@@ -332,19 +329,19 @@ quit:
 ; Output round resuts
 ; Update round
 ; Go to prompt
-		jmp		prompt					; reprompt
+		jmp		prompt		; reprompt
 
 end:
-		mov		rax, NOFLOAT			; non-float output
-		mov		rdi, sto				; string format (%s)
-		mov		rsi, bye				; goodbye message
-		call	printf
+		mov		rax, NOFLOAT	; non-float output
+		mov		rdi, sto	; string format (%s)
+		mov		rsi, bye	; goodbye message
+		call		printf
 
-		mov		rsp, rbp				; epilogue. Reset the stack pointer
-		pop		rbp						; restore the program counter
+		mov		rsp, rbp	; epilogue. Reset the stack pointer
+		pop		rbp		; restore the program counter
 
-		mov		rax, XITCMD				; exit
-		mov		rdi, NORMAL				; normal exit
+		mov		rax, XITCMD	; exit
+		mov		rdi, NORMAL	; normal exit
 		syscall
 
 ; *********************************************************************
@@ -356,12 +353,13 @@ end:
 reads:
 
 section	.data
-
 section	.bss
 
 .inputc	resb	1						; Single character
 
 section	.text
+
+; Reformatting stopped here (14, 25, 41 [49]) [0, 17, 33, (49 | 57)]
 
 		push	rbp						; Save the program counter
 		mov		rbp, rsp				; Move the stack pointer to the program counter
