@@ -28,6 +28,9 @@ ADLEN		equ		8		; Address length in bytes
 BLEN		equ		1		; Address length in bytes
 ONE		equ		1		; One constant
 ZERO		equ		0		; Zero constant
+ESC		equ		0x1b
+CRED		equ		"[0;31m"
+CYELLOW		equ		"[0;33m"
 
 ; ************************************************************************
 ; Command strings (proxies)
@@ -352,46 +355,44 @@ end:
 ; *********************************************************************
 reads:
 
-section	.data
-section	.bss
+section		.data
+section		.bss
 
-.inputc	resb	1						; Single character
+.inputc		resb		1		; Single character
 
-section	.text
+section		.text
 
-; Reformatting stopped here (14, 25, 41 [49]) [0, 17, 33, (49 | 57)]
-
-		push	rbp						; Save the program counter
-		mov		rbp, rsp				; Move the stack pointer to the program counter
-		push	r12						; save registers for argument use
-		push	r13			
-		push	r14			
-		mov		r12, rdi				; Address of input buffer
-		mov		r13, rsi				; Max length to r13
-		xor		r14, r14				; Character counter
+		push		rbp		; Save the program counter
+		mov		rbp, rsp	; Move the stack pointer to the program counter
+		push		r12		; save registers for argument use
+		push		r13			
+		push		r14			
+		mov		r12, rdi	; Address of input buffer
+		mov		r13, rsi	; Max length to r13
+		xor		r14, r14	; Character counter
 .readc:
-		mov		rax, 0					; Read opcode
-		mov		rdi, 1					; Set stdin
-		lea		rsi, [.inputc]			; Input address
-		mov		rdx, 1					; characters to read
+		mov		rax, 0		; Read opcode
+		mov		rdi, 1		; Set stdin
+		lea		rsi, [.inputc]	; Input address
+		mov		rdx, 1		; characters to read
 		syscall
-		mov		al, [.inputc]			; Input...
-		cmp		al, byte[NL]			; a newline?
-		je		.done					; end of input
-		cmp		al, 97					; less than 'a'?
-		jl		.readc					; Yes, ignore it
-		cmp		al, 122					; Greater than 'z'?
-		jg		.readc					; Yes, ignore as well
-		inc		r14						; Increment 'valid' input count
-		cmp		r14, r13				; max input?
-		ja		.readc					; Ignore stuff that would overflow the buffer
-		mov		byte[r12], al			; Save safe byte to buffer
-		inc		r12						; point to next byte in buffer
-		jmp		.readc					; get next character
+		mov		al, [.inputc]	; Input...
+		cmp		al, byte[NL]	; a newline?
+		je		.done		; end of input
+		cmp		al, 97		; less than 'a'?
+		jl		.readc		; Yes, ignore it
+		cmp		al, 122		; Greater than 'z'?
+		jg		.readc		; Yes, ignore as well
+		inc		r14		; Increment 'valid' input count
+		cmp		r14, r13	; max input?
+		ja		.readc		; Ignore stuff that would overflow the buffer
+		mov		byte[r12], al	; Save safe byte to buffer
+		inc		r12		; point to next byte in buffer
+		jmp		.readc		; get next character
 .done:
-		inc		r12						; bump buffer pointer
-		mov		byte[r12], 0			; zero terminate the buffer
-		pop		r14						; restore registers
+		inc		r12		; bump buffer pointer
+		mov		byte[r12], 0	; zero terminate the buffer
+		pop		r14		; restore registers
 		pop		r13
 		pop		r12
 leave
@@ -402,57 +403,57 @@ ret
 ; *********************************************************************
 getrand:
 
-section .data	
+section 	.data	
+section		.bss
+section		.text
 
-section	.bss
-
-section	.text
+; Reformatting stopped here (14, 25, 41 [49]) [0, 17, 33, (49 | 57)]
 
 ; *** I need to completely rewrite this function ***
 
-	push	rbp		; Save the program counter
-	mov	rbp, rsp	; Move the stack pointer to the program counter
-	; =======
-	mov 	rax, 1		; Force 1
-	mov 	[rando], rax	; Save it
-	mov 	rax, NOFLOAT	; non-float output
-	mov 	rdi, numnl	; number format (%d)
-	mov 	rsi, [rando]	; computer selection
-	call 	printf
-	; =======
-	xor	rax, rax	; zero rax
-	mov	rcx, rax	; move rax to rcx
-	call	time 		; Get the current time (seed for random)
+		push		rbp		; Save the program counter
+		mov		rbp, rsp	; Move the stack pointer to the program counter
+		; 		=======
+		mov 		rax, 1		; Force 1
+		mov 		[rando], rax	; Save it
+		mov 		rax, NOFLOAT	; non-float output
+		mov 		rdi, numnl	; number format (%d)
+		mov 		rsi, [rando]	; computer selection
+		call 		printf
+		; 		=======
+		xor		rax, rax	; zero rax
+		mov		rcx, rax	; move rax to rcx
+		call		time 		; Get the current time (seed for random)
 
-	; =======
-	mov 	rax, 2		; Force 2
-	mov 	[rando], rax	; Save it
-	mov 	rax, NOFLOAT	; non-float output
-	mov 	rdi, numnl	; number format (%d)
-	mov 	rsi, [rando]	; computer selection
-	call 	printf
-	; =======
+		; 		=======
+		mov 		rax, 2		; Force 2
+		mov 		[rando], rax	; Save it
+		mov 		rax, NOFLOAT	; non-float output
+		mov 		rdi, numnl	; number format (%d)
+		mov 		rsi, [rando]	; computer selection
+		call 		printf
+		; 		=======
 
-	mov	rcx, rax	; Save rax to rcx again
-	call	srand 		; Seed random number procedure
-	; =======
-	mov 	rax, 3		; Force 3
-	mov 	[rando], rax	; Save it
-	mov 	rax, NOFLOAT	; non-float output
-	mov 	rdi, numnl		; number format (%d)
-	mov 	rsi, [rando]	; computer selection
-	call 	printf
-	; ====== ===
+		mov		rcx, rax	; Save rax to rcx again
+		call		srand 		; Seed random number procedure
+		; 		=======
+		mov 		rax, 3		; Force 3
+		mov 		[rando], rax	; Save it
+		mov 		rax, NOFLOAT	; non-float output
+		mov 		rdi, numnl	; number format (%d)
+		mov 		rsi, [rando]	; computer selection
+		call 		printf
+		; 		=========
 
-	call	rand		; call the random number procedure
+		call		rand		; call the random number procedure
 
-	; rand = (rand % 4) + 1
-	xor	rdx, rdx	; Clear rdx
-	mov	rcx, 5		; 0 to 4 +1 (I think)
-	div 	rcx		; Get the value
-	;inc 	rdx 		; +1 for 1 through 5 (one base)
-	mov	[rando], rdx	; Save it 
+		; rand = (rand % 4) + 1
+		xor		rdx, rdx	; Clear rdx
+		mov		rcx, 5		; 0 to 4 +1 (I think)
+		div 		rcx		; Get the value
+		;inc 		rdx 		; +1 for 1 through 5 (one base)
+		mov		[rando], rdx	; Save it 
 
 .lret:
-	leave
-	ret 
+		leave
+		ret 
