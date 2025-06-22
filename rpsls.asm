@@ -400,60 +400,28 @@ ret
 
 ; *********************************************************************
 ; Get a random number of 0 to 4 (Computer guess)
+; This is working now. I verified by printing the end value in rdx.
 ; *********************************************************************
 getrand:
 
-section 	.data	
+section 	.data
 section		.bss
 section		.text
 
-; Reformatting stopped here (14, 25, 41 [49]) [0, 17, 33, (49 | 57)]
-
-; *** I need to completely rewrite this function ***
-
 		push		rbp		; Save the program counter
 		mov		rbp, rsp	; Move the stack pointer to the program counter
-		; 		=======
-		mov 		rax, 1		; Force 1
-		mov 		[rando], rax	; Save it
-		mov 		rax, NOFLOAT	; non-float output
-		mov 		rdi, numnl	; number format (%d)
-		mov 		rsi, [rando]	; computer selection
-		call 		printf
-		; 		=======
-		xor		rax, rax	; zero rax
-		mov		rcx, rax	; move rax to rcx
+		; Init the random seed to the linux epoch
+		xor		rdi, rdi	; zero source
+		xor		rax, rax	; and zero what will be the result.
 		call		time 		; Get the current time (seed for random)
-
-		; 		=======
-		mov 		rax, 2		; Force 2
-		mov 		[rando], rax	; Save it
-		mov 		rax, NOFLOAT	; non-float output
-		mov 		rdi, numnl	; number format (%d)
-		mov 		rsi, [rando]	; computer selection
-		call 		printf
-		; 		=======
-
-		mov		rcx, rax	; Save rax to rcx again
-		call		srand 		; Seed random number procedure
-		; 		=======
-		mov 		rax, 3		; Force 3
-		mov 		[rando], rax	; Save it
-		mov 		rax, NOFLOAT	; non-float output
-		mov 		rdi, numnl	; number format (%d)
-		mov 		rsi, [rando]	; computer selection
-		call 		printf
-		; 		=========
-
-		call		rand		; call the random number procedure
-
-		; rand = (rand % 4) + 1
-		xor		rdx, rdx	; Clear rdx
-		mov		rcx, 5		; 0 to 4 +1 (I think)
-		div 		rcx		; Get the value
-		;inc 		rdx 		; +1 for 1 through 5 (one base)
+		; Use the seed in rax to pull a value from the rand functionm
+		mov		rdi, rax	; recover the seed from rax
+		call		srand		; Seed the random number generator
+		call		rand		; and get a random number (in rax)
+		xor		rdx, rdx	; Zero destination
+		mov		rbx, 5		; set up for a mod 5 operation
+		div		rbx		; scale the result number	
 		mov		[rando], rdx	; Save it 
-
 .lret:
 		leave
 		ret 
