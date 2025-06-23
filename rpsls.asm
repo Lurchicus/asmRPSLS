@@ -168,7 +168,7 @@ red		db		0x1b,"[0;31m"	; Red
 ; Splash screen, help screen and prompt text  
 ; ************************************************************************
 ;				Splash
-splashs		db		0x1b,"[1;34m" 
+splashs		db		0x1b,"[1;34m"
 		db		"RPSLS v1.0 a Rock, Paper, Scissors, Lizard, "
 		db		"Spock game by Dan Rhea, 2024",10
 		db		"as designed by Sam Kass and Karen Bryla. "
@@ -395,8 +395,8 @@ section		.text
 		pop		r14		; restore registers
 		pop		r13
 		pop		r12
-leave
-ret
+		leave
+		ret
 
 ; *********************************************************************
 ; Get a random number of 0 to 4 (Computer guess)
