@@ -388,6 +388,8 @@ section		.text
 		mov		r12, rdi	; Address of input buffer
 		mov		r13, rsi	; Max length to r13
 		xor		r14, r14	; Character counter
+		xor		al, al		; Clear input register
+		mov		[.inputc], al	; Clear buffer with it
 .readc:
 		mov		rax, 0		; Read opcode
 		mov		rdi, 1		; Set stdin

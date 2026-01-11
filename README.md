@@ -55,3 +55,4 @@ an in progress note above.
 - 01/10/2026 DWR Optimize (and improve results) by saving the result of time() and srand() globally and skipping them in later calls to the random subroutine.
 - 01/10/2026 DWR Set the program to loop. need to clear the input buffer before reading again (in progress)
 - 01/10/2026 DWR The clear buffer or reads has a flaw. I keep getting characters from the previous input. I enter "papers" then next time I enter "fall" I get "fallr" in the buffer (the fifth character of the previous input). Perplexing.
+- 01/10/2026 DWR Zapping the input register and buffer in the reads procedure didn't fix this either.
