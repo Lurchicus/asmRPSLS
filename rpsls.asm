@@ -216,6 +216,7 @@ extern		printf				; Use the c library printf procedure
 extern		rand				; C random procedure
 extern		srand				; C init random procedure
 extern		time				; C init time procedure
+extern		memset				; C memory set procedure
 
 global		main
 main:
@@ -264,7 +265,15 @@ prompt:
 ; Get input from player
 ; ************************************************************************
 		; Clear the input buffer so we don't get garbage when looping
-		; todo
+		xor		eax, eax	; Clear index register
+		mov		rcx, inlen	; Get buffer len
+clearin:
+		mov		al, [inbuf+eax]	; Get byte in register
+		or		al, 0		; Zero it
+		mov		[inbuf+eax], al	; Save back
+		inc		eax		; Bump address
+		loopnz		clearin		; Not done, repeat
+		; 
 		mov		rdi, inbuf	; Input buffer
 		mov		rsi, inlen	; Buffer length
 		call		reads		; read string function
@@ -276,7 +285,7 @@ prompt:
 		mov 		rsi, [rando]	; computer selection
 		call 		printf		; Show the random number (0-4)
 
-; for now, echo input and exit
+; for now, echo input
 		mov		rax, NOFLOAT	; non-float output
 		mov		rdi, nlst	; format
 		mov		rsi, inbuf	; User alpha input
