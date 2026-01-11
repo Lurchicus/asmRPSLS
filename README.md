@@ -52,3 +52,5 @@ an in progress note above.
 - 12/07/2024 DWR Added code to debug 'getrand' as it has issues
 - 12/15/2024 DWR Added debug prints to the random routine
 - 05/07/2025 DWR Continuing to work on random number sub. It works with debug code (printf) but segmentation faults without it.
+- 01/10/2026 DWR Optimize (and improve results) by saving the result of time() and srand() globally and skipping them in later calls to the random subroutine.
+- 01/10/2026 DWR Set the program to loop. need to clear the input buffer before reading again (in progress)

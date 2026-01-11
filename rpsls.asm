@@ -137,6 +137,7 @@ rsltadd		dq		$playwin, $compwin, $bothtie, $rsltend
 ; ************************************************************************
 ; Score and "round" info
 ; ************************************************************************
+tseed		dw		0		; Random seed store time()
 pscore		dq		0		; Player score
 cscore		dq		0		; Computer score
 ties		dq		0		; Tie results
@@ -262,6 +263,8 @@ prompt:
 ; ************************************************************************
 ; Get input from player
 ; ************************************************************************
+		; Clear the input buffer so we don't get garbage when looping
+		; todo
 		mov		rdi, inbuf	; Input buffer
 		mov		rsi, inlen	; Buffer length
 		call		reads		; read string function
@@ -294,8 +297,14 @@ shocmd:
 		pop		rdx		; Restore rdx
 		add		rdx, ADLEN	; Bump to the next 64bit address
 		cmp		rdx, eaddr	; This the end of the address table?
-		je		endit		; Yes, finish
+		je		processu	; Yes, finish
 		jmp		shocmd		; No, get the next command string
+processu:
+		xor		rax, rax	; clear rax
+		mov		al, byte[inbuf]	; Grab the first byte of the user input buffer
+		cmp		al, 10		; EOL?
+		je		endit		; Yes, exit
+		jmp		prompt		; No, reprompt
 endit:
 		jmp		end		; For now
 
@@ -410,6 +419,11 @@ section		.text
 
 		push		rbp		; Save the program counter
 		mov		rbp, rsp	; Move the stack pointer to the program counter
+						; Use the globally saved random seed. 
+						; If non-zero, skip time() and srand() calls
+		mov		rax, [tseed]	; Load global time seed
+		cmp		rax, 0		;
+		jne		.gotseed	; skip time call
 		; Init the random seed to the linux epoch
 		xor		rdi, rdi	; zero source
 		xor		rax, rax	; and zero what will be the result.
@@ -417,6 +431,7 @@ section		.text
 		; Use the seed in rax to pull a value from the rand functionm
 		mov		rdi, rax	; recover the seed from rax
 		call		srand		; Seed the random number generator
+.gotseed:
 		call		rand		; and get a random number (in rax)
 		xor		rdx, rdx	; Zero destination
 		mov		rbx, 5		; set up for a mod 5 operation
