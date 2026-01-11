@@ -56,3 +56,4 @@ an in progress note above.
 - 01/10/2026 DWR Set the program to loop. need to clear the input buffer before reading again (in progress)
 - 01/10/2026 DWR The clear buffer or reads has a flaw. I keep getting characters from the previous input. I enter "papers" then next time I enter "fall" I get "fallr" in the buffer (the fifth character of the previous input). Perplexing.
 - 01/10/2026 DWR Zapping the input register and buffer in the reads procedure didn't fix this either.
+- 01/11/2026 DWR Oops, forgot to save the seed in random procedure. The buffer bug is still lurking. I may actually need to use a debugger on this. :/

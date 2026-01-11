@@ -442,6 +442,7 @@ section		.text
 		; Use the seed in rax to pull a value from the rand functionm
 		mov		rdi, rax	; recover the seed from rax
 		call		srand		; Seed the random number generator
+		mov		[tseed], rax	; Save the seed for later calls
 .gotseed:
 		call		rand		; and get a random number (in rax)
 		xor		rdx, rdx	; Zero destination
