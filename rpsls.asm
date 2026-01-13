@@ -220,6 +220,7 @@ extern		memset				; C memory set procedure
 
 global		main
 main:
+    mov ebp, esp; for correct debugging
 		push		rbp		; prologue (save program counter)
 		mov		rbp, rsp	; Move stack pointer to program counter
 
@@ -267,12 +268,15 @@ prompt:
 		; Clear the input buffer so we don't get garbage when looping
 		xor		eax, eax	; Clear index register
 		mov		rcx, inlen	; Get buffer len
-clearin:
-		mov		al, [inbuf+eax]	; Get byte in register
-		or		al, 0		; Zero it
-		mov		[inbuf+eax], al	; Save back
-		inc		eax		; Bump address
-		loopnz		clearin		; Not done, repeat
+;clearin:
+;		mov		al, [inbuf+eax]	; Get byte in register
+;		or		al, 0		; Zero it
+;		mov		[inbuf+eax], al	; Save back
+;		inc		eax		; Bump address
+;		loopnz		clearin		; Not done, repeat
+		mov		rdi, inbuf	; Input buffer
+		mov		rsi, inlen	; Buffer length
+		call		clearb		; Clear inbuf
 		; 
 		mov		rdi, inbuf	; Input buffer
 		mov		rsi, inlen	; Buffer length
@@ -452,3 +456,40 @@ section		.text
 .lret:
 		leave
 		ret 
+
+; ********************************************************************
+; Clear the byte buffer
+; 	Buffer address: rdi
+;	Buffer length:	rsi
+; ********************************************************************
+clearb:
+
+section		.data
+section		.bss
+section		.text
+
+		push		rbp		; Save the program counter
+		mov		rbp, rsp	; Move the stack pointer to the program counter
+						; Use the globally saved random seed. 
+						; If non-zero, skip time() and srand() calls
+
+		; Clear the input buffer so we don't get garbage when looping
+		xor		eax, eax	; Clear index register
+		mov		rcx, rsi	; Get buffer len
+clearin:
+		mov		rdi, [rdi+rax]
+		mov		al, [rdi]	; Get byte in register
+		or		al, 0		; Zero it
+		mov		[inbuf+eax], al	; Save back
+		inc		eax		; Bump address
+		loopnz		clearin		; Not done, repeat
+
+		; Print buffer (debug)
+		mov		rax, NOFLOAT	; non-float output
+		mov		rdi, nlst	; format
+		mov		rsi, inbuf	; User alpha input
+		call		printf		; show it		
+
+.cret:
+		leave
+		ret 	
