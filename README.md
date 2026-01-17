@@ -58,3 +58,4 @@ an in progress note above.
 - 01/10/2026 DWR Zapping the input register and buffer in the reads procedure didn't fix this either.
 - 01/11/2026 DWR Oops, forgot to save the seed in random procedure. The buffer bug is still lurking. I may actually need to use a debugger on this. :/
 - 01/13/2026 DWR Moved the buffer clearing logic into a new procedure (clearb). It gets a seg fault (need to ponder this a bit).
+- 01/17/2026 DWR Rewrote the "clearit" procedure and got rid of the segmentation fault. This also fixed the buffer corruption issue. GDB to the rescue!
