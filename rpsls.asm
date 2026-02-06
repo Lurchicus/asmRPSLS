@@ -216,7 +216,7 @@ extern		printf				; Use the c library printf procedure
 extern		rand				; C random procedure
 extern		srand				; C init random procedure
 extern		time				; C init time procedure
-extern		memset				; C memory set procedure
+;extern		memset				; C memory set procedure
 
 global		main
 main:
